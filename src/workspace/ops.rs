@@ -141,21 +141,6 @@ impl WorkspaceManager {
             ),
         };
 
-        // if args.zipped {
-        //     let dst_zip = format!("{}.zip", &data.root);
-        //     let zipper = ZipArchiver::new(&data.root, &dst_zip);
-        //     match zipper.run() {
-        //         Ok(_) => (),
-        //         Err(ZipError::FileNotFound) => {
-        //             eprintln!(
-        //                 "{}",
-        //                 "\ncould not zip the downloaded file".colorize("bold red")
-        //             )
-        //         }
-        //         Err(e) => eprintln!("{}", e.to_string().colorize("bold red")),
-        //     }
-        // }
-
         Ok(())
     }
 
