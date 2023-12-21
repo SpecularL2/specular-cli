@@ -1,4 +1,4 @@
-package run_local_docker
+package local_docker_run
 
 import (
 	"context"

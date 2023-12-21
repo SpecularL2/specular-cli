@@ -3,11 +3,13 @@ package local_docker
 import (
 	"context"
 	"fmt"
-	"github.com/SpecularL2/specular-cli/internal/service/config"
+
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/wait"
+
+	"github.com/SpecularL2/specular-cli/internal/service/config"
 )
 
 const (
@@ -45,7 +47,7 @@ func NewSpMagiServer(
 	ctx context.Context,
 	log *logrus.Logger,
 	dockerNetwork *testcontainers.DockerNetwork,
-	spMagiConfig *config.SpMagiConfig,
+	smc *config.SpMagiConfig,
 ) (*SpMagiServer, error) {
 	ctx, cancel := context.WithTimeout(ctx, ContainerContextTimeout)
 	defer cancel()
@@ -62,22 +64,7 @@ func NewSpMagiServer(
 		Env:            map[string]string{},
 		Networks:       []string{dockerNetwork.Name},
 		NetworkAliases: map[string][]string{dockerNetwork.Name: {GethHost}},
-		Entrypoint: []string{
-			"geth",
-			"--devnet",
-			"--network", spMagiConfig.Network,
-			"--l1-rpc-url", spMagiConfig.L1RpcURL,
-			"--l2-rpc-url", spMagiConfig.L2RpcURL,
-			"--sync-mode", spMagiConfig.SyncMode,
-			"--l2-engine-url", spMagiConfig.L2EngineURL,
-			"--jwt-file", spMagiConfig.JWTSecretPath,
-			"--rpc-port", spMagiConfig.RpcPort,
-			"--sequencer",
-			"--sequencer-max-safe-lag", spMagiConfig.SequencerMaxSafeLag,
-			"--sequencer-pk-file", spMagiConfig.SequencerPkFile,
-			"--checkpoint-sync-url", spMagiConfig.CheckpointSyncUrl,
-			"--checkpoint-hash", spMagiConfig.CheckpointHash,
-		},
+		Entrypoint:     append([]string{"magi"}, smc.Args()...),
 		WaitingFor: wait.ForAll(
 			wait.ForLog("HTTP server started"),
 			wait.ForListeningPort(GethPortHTTP),

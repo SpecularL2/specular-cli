@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/SpecularL2/specular-cli/internal/service/config"
+
 	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 	"github.com/testcontainers/testcontainers-go"
@@ -25,6 +27,7 @@ const (
 type GethServer struct {
 	log      *logrus.Logger
 	Instance testcontainers.Container
+	config   *config.GethConfig
 }
 
 func (g GethServer) Port() (int, error) {
@@ -69,10 +72,16 @@ func NewGethServer(
 	ctx context.Context,
 	log *logrus.Logger,
 	dockerNetwork *testcontainers.DockerNetwork,
-	// gethConfig config.GethConfig,
+	// gc *config.GethConfig,
 ) (*GethServer, error) {
 	ctx, cancel := context.WithTimeout(ctx, ContainerContextTimeout)
 	defer cancel()
+
+	// TODO: refactor that this is a constructor's argument
+	gc := &config.GethConfig{
+		GethPortHTTP: GethPortHTTP,
+		GethPortTCP:  GethPortTCP,
+	}
 
 	request := testcontainers.ContainerRequest{
 		Name:     lo.Ternary(ReuseContainers, GethContainerName, ""),
@@ -90,27 +99,7 @@ func NewGethServer(
 		Env:            map[string]string{},
 		Networks:       []string{dockerNetwork.Name},
 		NetworkAliases: map[string][]string{dockerNetwork.Name: {GethHost}},
-		Entrypoint: []string{
-			"geth",
-			"--dev",
-			"--dev.period", "2",
-			"--http",
-			"--http.addr", "0.0.0.0",
-			"--http.port", GethPortHTTP,
-			"--http.api", "engine,personal,eth,net,web3,txpool,miner,debug",
-			"--http.corsdomain", "*",
-			"--http.vhosts", "*",
-			"--ws",
-			"--ws.addr", "0.0.0.0",
-			"--ws.port", GethPortTCP,
-			"--ws.api", "engine,personal,eth,net,web3,txpool,miner,debug",
-			"--ws.origins", "\"*\"",
-			"--authrpc.vhosts", "*",
-			"--authrpc.addr", "0.0.0.0",
-			// "--authrpc.port", "$AUTH_PORT",
-			// "--authrpc.jwtsecret", "$JWT_SECRET_PATH",
-			"--miner.recommit", "0",
-		},
+		Entrypoint:     append([]string{"geth"}, gc.Args()...),
 		WaitingFor: wait.ForAll(
 			wait.ForLog("HTTP server started"),
 			wait.ForListeningPort(GethPortHTTP),
@@ -129,5 +118,6 @@ func NewGethServer(
 	return &GethServer{
 		log:      log,
 		Instance: instance,
+		config:   gc,
 	}, nil
 }

@@ -11,6 +11,33 @@ const (
 )
 
 type GethConfig struct {
+	GethPortHTTP string
+	GethPortTCP  string
+}
+
+func (gc *GethConfig) Args() []string {
+	return []string{
+		"--dev",
+		// TODO: instead of dev.period we should probably have a function to trigger the mine manually via geth API,
+		//       but it may depend on the type of test. For L2 and others we could have similar capability.
+		"--dev.period", "2",
+		"--http",
+		"--http.addr", "0.0.0.0",
+		"--http.port", gc.GethPortHTTP,
+		"--http.api", "engine,personal,eth,net,web3,txpool,miner,debug",
+		"--http.corsdomain", "*",
+		"--http.vhosts", "*",
+		"--ws",
+		"--ws.addr", "0.0.0.0",
+		"--ws.port", gc.GethPortTCP,
+		"--ws.api", "engine,personal,eth,net,web3,txpool,miner,debug",
+		"--ws.origins", "\"*\"",
+		"--authrpc.vhosts", "*",
+		"--authrpc.addr", "0.0.0.0",
+		// "--authrpc.port", "$AUTH_PORT",
+		// "--authrpc.jwtsecret", "$JWT_SECRET_PATH",
+		"--miner.recommit", "0",
+	}
 }
 
 type SpMagiConfig struct {
@@ -27,9 +54,28 @@ type SpMagiConfig struct {
 	CheckpointHash      string
 }
 
+func (smc *SpMagiConfig) Args() []string {
+	return []string{
+		"--devnet",
+		"--network", smc.Network,
+		"--l1-rpc-url", smc.L1RpcURL,
+		"--l2-rpc-url", smc.L2RpcURL,
+		"--sync-mode", smc.SyncMode,
+		"--l2-engine-url", smc.L2EngineURL,
+		"--jwt-file", smc.JWTSecretPath,
+		"--rpc-port", smc.RpcPort,
+		"--sequencer",
+		"--sequencer-max-safe-lag", smc.SequencerMaxSafeLag,
+		"--sequencer-pk-file", smc.SequencerPkFile,
+		"--checkpoint-sync-url", smc.CheckpointSyncUrl,
+		"--checkpoint-hash", smc.CheckpointHash,
+	}
+}
+
 type Workspace struct {
 	// TODO: abstract structure to hold all values loaded from the active workspace/test or set values via CLI tool run
 	L1GethURL    string
+	GethConfig   GethConfig
 	SpMagiConfig SpMagiConfig
 }
 

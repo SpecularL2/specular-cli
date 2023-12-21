@@ -1,4 +1,4 @@
-package run_local_docker
+package local_docker_run
 
 import (
 	"testing"
@@ -34,6 +34,7 @@ func (s *LocalDockerTestSuite) TestExample() {
 		//       - we should abstract accounts to be dynamic and automatically funded
 		//	     - we should make some labeling system instead of getting them by index :/
 
+		// TODO: this will fail because the accounts are not yet funded
 		fromBalance, err := spc.CheckBalance(client, fromAddress)
 		require.NoError(s.T(), err)
 
