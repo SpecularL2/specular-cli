@@ -87,7 +87,7 @@ type WorkspaceCmd struct {
 type Config struct {
 	LogLevel     string
 	WorkspaceCmd *WorkspaceCmd `arg:"subcommand:workspace"`
-	Workspace    *Workspace
+	Workspace    *Workspace    `arg:"-"`
 }
 
 func (c *Config) Description() string {
