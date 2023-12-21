@@ -30,6 +30,10 @@ func (s *LocalDockerTestSuite) TestExample() {
 	require.NoError(s.T(), err)
 
 	s.T().Run("send transaction", func(t *testing.T) {
+		// TODO: make so that the TestClusterSetup already has built in account funding (for the accounts existing),
+		//       - we should abstract accounts to be dynamic and automatically funded
+		//	     - we should make some labeling system instead of getting them by index :/
+
 		fromBalance, err := spc.CheckBalance(client, fromAddress)
 		require.NoError(s.T(), err)
 
