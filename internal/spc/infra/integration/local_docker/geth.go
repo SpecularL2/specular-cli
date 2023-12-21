@@ -69,6 +69,7 @@ func NewGethServer(
 	ctx context.Context,
 	log *logrus.Logger,
 	dockerNetwork *testcontainers.DockerNetwork,
+	// gethConfig config.GethConfig,
 ) (*GethServer, error) {
 	ctx, cancel := context.WithTimeout(ctx, ContainerContextTimeout)
 	defer cancel()
@@ -92,12 +93,13 @@ func NewGethServer(
 		Entrypoint: []string{
 			"geth",
 			"--dev",
+			"--dev.period", "2",
 			"--http",
 			"--http.addr", "0.0.0.0",
 			"--http.port", GethPortHTTP,
-			"--http.api", "\"engine,personal,eth,net,web3,txpool,miner,debug\"",
-			"--http.corsdomain", "\"*\"",
-			"--http.vhosts", "\"*\"",
+			"--http.api", "engine,personal,eth,net,web3,txpool,miner,debug",
+			"--http.corsdomain", "*",
+			"--http.vhosts", "*",
 			"--ws",
 			"--ws.addr", "0.0.0.0",
 			"--ws.port", GethPortTCP,

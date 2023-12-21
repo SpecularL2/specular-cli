@@ -10,9 +10,27 @@ const (
 	serviceName     = "spc"
 )
 
+type GethConfig struct {
+}
+
+type SpMagiConfig struct {
+	Network             string
+	L1RpcURL            string
+	L2RpcURL            string
+	SyncMode            string
+	L2EngineURL         string
+	JWTSecretPath       string
+	RpcPort             string
+	SequencerMaxSafeLag string
+	SequencerPkFile     string
+	CheckpointSyncUrl   string
+	CheckpointHash      string
+}
+
 type Workspace struct {
 	// TODO: abstract structure to hold all values loaded from the active workspace/test or set values via CLI tool run
-	L1GethURL string
+	L1GethURL    string
+	SpMagiConfig SpMagiConfig
 }
 
 type WorkspaceCmd struct {

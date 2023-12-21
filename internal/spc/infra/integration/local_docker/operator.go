@@ -56,7 +56,7 @@ type SpcDockerCluster struct {
 
 	Geth    integration.ServerInstance
 	SpGeth  integration.ServerInstance
-	Magi    integration.ServerInstance
+	SpMagi  integration.ServerInstance
 	Sidecar integration.ServerInstance
 
 	Teardown func()
@@ -81,8 +81,8 @@ func (sdc *SpcDockerCluster) Close() error {
 		}
 	}
 
-	if sdc.Magi != nil {
-		if err := sdc.Magi.Close(); err != nil {
+	if sdc.SpMagi != nil {
+		if err := sdc.SpMagi.Close(); err != nil {
 			return err
 		}
 	}
