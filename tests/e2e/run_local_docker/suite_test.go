@@ -46,7 +46,7 @@ func initTestService(t *testing.T) SpcIntegrationService {
 	ctx := context.TODO()
 	log := logrus.New()
 
-	cluster, err := local_docker.NewSpcDockerCluster(ctx, log)
+	cluster, err := local_docker.NewSpcDockerCluster(ctx, log, local_docker.WithAll())
 	require.NoError(t, err)
 
 	testSetup := tests.NewIntegrationTestSetup(t, ctx, cluster)

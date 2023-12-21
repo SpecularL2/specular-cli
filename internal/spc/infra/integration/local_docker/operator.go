@@ -2,6 +2,7 @@ package local_docker
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -63,7 +64,7 @@ type SpcDockerCluster struct {
 
 func (sdc *SpcDockerCluster) Workspace() *config.Workspace {
 	return &config.Workspace{
-		L1GethURL: lo.Must(sdc.Geth.Address()),
+		L1GethURL: fmt.Sprintf("http://%s", lo.Must(sdc.Geth.Address())),
 	}
 }
 
@@ -109,10 +110,10 @@ func WithAll() func(*SpcDockerCluster) error {
 			return err
 		}
 
-		sdc.SpGeth, err = NewSpGethServer(sdc.ctx, sdc.log, sdc.network)
-		if err != nil {
-			return err
-		}
+		//sdc.SpGeth, err = NewSpGethServer(sdc.ctx, sdc.log, sdc.network)
+		//if err != nil {
+		//	return err
+		//}
 		return nil
 	}
 }
