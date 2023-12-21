@@ -10,14 +10,20 @@ const (
 	serviceName     = "spc"
 )
 
+type Workspace struct {
+	// TODO: abstract structure to hold all values loaded from the active workspace/test or set values via CLI tool run
+	L1GethURL string
+}
+
 type WorkspaceCmd struct {
 	Command string `arg:"positional"`
 	Name    string `arg:"positional"`
 }
 
 type Config struct {
-	LogLevel  string
-	Workspace *WorkspaceCmd `arg:"subcommand:workspace"`
+	LogLevel     string
+	WorkspaceCmd *WorkspaceCmd `arg:"subcommand:workspace"`
+	Workspace    *Workspace
 }
 
 func (c *Config) Description() string {

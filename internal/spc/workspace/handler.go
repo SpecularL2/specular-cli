@@ -3,10 +3,12 @@ package workspace
 import (
 	"context"
 	"fmt"
-	"github.com/SpecularL2/specular-cli/internal/service/config"
-	"github.com/hashicorp/go-getter"
 	"os"
 	"os/user"
+
+	"github.com/hashicorp/go-getter"
+
+	"github.com/SpecularL2/specular-cli/internal/service/config"
 )
 
 const defaultWorkspaceUrl = "github.com/SpecularL2/specular//config/local_devnet"
@@ -50,7 +52,7 @@ func (w *WorkspaceHandler) DownloadDefault() error {
 }
 
 func (w *WorkspaceHandler) Cmd() error {
-	if w.cfg.Workspace.Command == "download" && w.cfg.Workspace.Name == "default" {
+	if w.cfg.WorkspaceCmd.Command == "download" && w.cfg.WorkspaceCmd.Name == "default" {
 		fmt.Printf("Downloading default workspace from: %s\n", defaultWorkspaceUrl)
 		if err := w.DownloadDefault(); err != nil {
 			return err

@@ -2,9 +2,10 @@ package di
 
 import (
 	"context"
-	"github.com/SpecularL2/specular-cli/internal/spc/workspace"
 	"os"
 	"os/signal"
+
+	"github.com/SpecularL2/specular-cli/internal/spc/workspace"
 
 	"github.com/sirupsen/logrus"
 
@@ -38,7 +39,7 @@ func (app *Application) Run() error {
 	errGroup, _ := errgroup.WithContext(app.ctx)
 
 	switch {
-	case app.config.Workspace != nil:
+	case app.config.WorkspaceCmd != nil:
 		if err := app.workspace.Cmd(); err != nil {
 			return err
 		}

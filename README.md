@@ -4,7 +4,7 @@ Specular CLI - toolkit for L2 integration and testing
 ## Run with Docker
 
 ```shell
-docker build . -t spc && docker run spc -h
+local_docker build . -t spc && local_docker run spc -h
 ```
 
 ## Run local
