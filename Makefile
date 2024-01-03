@@ -3,6 +3,7 @@ GO_BUILD=$(GO_CMD) build
 CMD_PATH=./cmd/spc/main.go
 DIST=dist
 DIST_LINUX=$(DIST)/linux
+DIST_MACOS=$(DIST)/macos
 BINARY_NAME=spc
 REPO=$(shell .github/scripts/reponame.sh)
 DOCKER_BUILD_ARGS=($BUILD_ARGS)
@@ -32,6 +33,11 @@ lint: lint-test
 build-linux:
 	mkdir -p $(DIST_LINUX)
 	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 $(GO_BUILD) -o ./$(DIST_LINUX)/$(BINARY_NAME) -v $(CMD_PATH)
+
+.PHONY: build-macos # Build macOS binary
+build-macos:
+	mkdir -p $(DIST_MACOS)
+	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 $(GO_BUILD) -o ./$(DIST_MACOS)/$(BINARY_NAME) -v $(CMD_PATH)
 
 .PHONY: build # Build Linux binary (alias)
 build: build-linux
