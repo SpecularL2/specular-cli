@@ -17,8 +17,6 @@ import (
 	"github.com/SpecularL2/specular-cli/internal/service/config"
 )
 
-const defaultRepository = "specularL2/specular"
-const defaultWorkspacePath = "config/local_devnet"
 const githubUrl = "https://api.github.com/repos/%s/contents/%s"
 
 type WorkspaceHandler struct {
@@ -31,13 +29,13 @@ type ConfigFile struct {
 	Name        string `json:"name"`
 }
 
-func (w *WorkspaceHandler) DownloadDefault() error {
+func (w *WorkspaceHandler) DownloadConfig() error {
 	usr, err := user.Current()
 	if err != nil {
 		return err
 	}
 
-	dst := fmt.Sprintf("%s/.spc/workspaces/default", usr.HomeDir)
+	dst := fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.WorkspaceCmd.Name)
 	// TODO: ask for confirmation if workspace already exists
 	if err = os.RemoveAll(dst); err != nil {
 		return err
@@ -48,7 +46,7 @@ func (w *WorkspaceHandler) DownloadDefault() error {
 	}
 	w.log.Infof("saving workspace at: %s", dst)
 
-	orig := fmt.Sprintf(githubUrl, defaultRepository, defaultWorkspacePath)
+	orig := fmt.Sprintf(githubUrl, w.cfg.WorkspaceCmd.ConfigRepo, w.cfg.WorkspaceCmd.ConfigPath)
 	resp, err := http.Get(orig)
 	if err != nil {
 		return err
@@ -82,16 +80,16 @@ func (w *WorkspaceHandler) DownloadDefault() error {
 }
 
 func (w *WorkspaceHandler) Cmd() error {
-	if w.cfg.WorkspaceCmd.Command == "download" && w.cfg.WorkspaceCmd.Name == "default" {
-		if err := w.DownloadDefault(); err != nil {
+	if w.cfg.WorkspaceCmd.Command == "download" {
+		if err := w.DownloadConfig(); err != nil {
 			return err
 		}
-	} else if w.cfg.WorkspaceCmd.Command == "activate" && w.cfg.WorkspaceCmd.Name == "default" {
+	} else if w.cfg.WorkspaceCmd.Command == "activate" {
 		if err := w.LoadWorkspaceEnvVars(); err != nil {
 			return err
 		}
 	} else {
-		return fmt.Errorf("the only supported command is:\nspc workspace download default")
+		return fmt.Errorf("the only supported commands are [download] and [activate]")
 	}
 	return nil
 }
@@ -131,7 +129,7 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 	if err != nil {
 		return err
 	}
-	src := fmt.Sprintf("%s/.spc/workspaces/default", usr.HomeDir)
+	src := fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.WorkspaceCmd.Name)
 
 	items, _ := os.ReadDir(src)
 	envVars := map[string]string{}

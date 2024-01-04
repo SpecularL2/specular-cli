@@ -79,9 +79,12 @@ type Workspace struct {
 	SpMagiConfig SpMagiConfig
 }
 
+// TODO: typecheck command here
 type WorkspaceCmd struct {
-	Command string `arg:"positional"`
-	Name    string `arg:"positional"`
+	Command    string `arg:"positional"`
+	ConfigPath string `arg:"--config-path" default:"config/local_devnet" help:"path of the workspace config"`
+	ConfigRepo string `arg:"--config-repository" default:"specularL2/specular" help:"github repository to pull config from"`
+	Name       string `arg:"--workspace-name" default:"default" help:"name of the workspace"`
 }
 
 type Config struct {
