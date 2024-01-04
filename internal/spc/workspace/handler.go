@@ -35,7 +35,7 @@ func (w *WorkspaceHandler) DownloadConfig() error {
 		return err
 	}
 
-	dst := fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.WorkspaceCmd.Name)
+	dst := fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.Args.Workspace.Name)
 	// TODO: ask for confirmation if workspace already exists
 	if err = os.RemoveAll(dst); err != nil {
 		return err
@@ -46,7 +46,7 @@ func (w *WorkspaceHandler) DownloadConfig() error {
 	}
 	w.log.Infof("saving workspace at: %s", dst)
 
-	orig := fmt.Sprintf(githubUrl, w.cfg.WorkspaceCmd.ConfigRepo, w.cfg.WorkspaceCmd.ConfigPath)
+	orig := fmt.Sprintf(githubUrl, w.cfg.Args.Workspace.Download.ConfigRepo, w.cfg.Args.Workspace.Download.ConfigPath)
 	resp, err := http.Get(orig)
 	if err != nil {
 		return err
@@ -80,17 +80,14 @@ func (w *WorkspaceHandler) DownloadConfig() error {
 }
 
 func (w *WorkspaceHandler) Cmd() error {
-	if w.cfg.WorkspaceCmd.Command == "download" {
-		if err := w.DownloadConfig(); err != nil {
-			return err
-		}
-	} else if w.cfg.WorkspaceCmd.Command == "activate" {
-		if err := w.LoadWorkspaceEnvVars(); err != nil {
-			return err
-		}
-	} else {
-		return fmt.Errorf("the only supported commands are [download] and [activate]")
+	switch {
+	case w.cfg.Args.Workspace.Download != nil:
+		return w.DownloadConfig()
+	case w.cfg.Args.Workspace.Activate != nil:
+		return w.LoadWorkspaceEnvVars()
 	}
+
+	w.log.Warn("no command found, exiting...")
 	return nil
 }
 
@@ -129,7 +126,7 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 	if err != nil {
 		return err
 	}
-	src := fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.WorkspaceCmd.Name)
+	src := fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.Args.Workspace.Name)
 
 	items, _ := os.ReadDir(src)
 	envVars := map[string]string{}

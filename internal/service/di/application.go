@@ -39,10 +39,8 @@ func (app *Application) Run() error {
 	errGroup, _ := errgroup.WithContext(app.ctx)
 
 	switch {
-	case app.config.WorkspaceCmd != nil:
-		if err := app.workspace.Cmd(); err != nil {
-			return err
-		}
+	case app.config.Args.Workspace != nil:
+		return app.workspace.Cmd()
 	}
 
 	err := errGroup.Wait()

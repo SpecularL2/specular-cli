@@ -79,18 +79,28 @@ type Workspace struct {
 	SpMagiConfig SpMagiConfig
 }
 
-// TODO: typecheck command here
-type WorkspaceCmd struct {
-	Command    string `arg:"positional"`
+type DownloadCmd struct {
 	ConfigPath string `arg:"--config-path" default:"config/local_devnet" help:"path of the workspace config"`
 	ConfigRepo string `arg:"--config-repository" default:"specularL2/specular" help:"github repository to pull config from"`
-	Name       string `arg:"--workspace-name" default:"default" help:"name of the workspace"`
+}
+
+type ActivateCmd struct {
+}
+
+type WorkspaceCmd struct {
+	Download *DownloadCmd `arg:"subcommand:download"`
+	Activate *ActivateCmd `arg:"subcommand:activate"`
+	Name     string       `arg:"--workspace-name" default:"default" help:"name of the workspace"`
+}
+
+type Args struct {
+	Workspace *WorkspaceCmd `arg:"subcommand:workspace"`
+	LogLevel  string `arg:"-v,--verbosity" help:"set the log level"`
 }
 
 type Config struct {
-	LogLevel     string
-	WorkspaceCmd *WorkspaceCmd `arg:"subcommand:workspace"`
-	Workspace    *Workspace    `arg:"-"`
+	Workspace *Workspace
+	Args      Args
 }
 
 func (c *Config) Description() string {
@@ -98,7 +108,7 @@ func (c *Config) Description() string {
 }
 
 func (c *Config) GetLogLevel(defaultLevel logrus.Level) logrus.Level {
-	level, err := logrus.ParseLevel(c.LogLevel)
+	level, err := logrus.ParseLevel(c.Args.LogLevel)
 	if err != nil {
 		level = defaultLevel
 	}
@@ -107,6 +117,6 @@ func (c *Config) GetLogLevel(defaultLevel logrus.Level) logrus.Level {
 
 func NewConfig() (*Config, error) {
 	cfg := Config{}
-	arg.MustParse(&cfg)
+	arg.MustParse(&cfg.Args)
 	return &cfg, nil
 }
