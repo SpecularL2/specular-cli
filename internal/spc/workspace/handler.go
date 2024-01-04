@@ -7,6 +7,10 @@ import (
 	"net/http"
 	"os"
 	"os/user"
+	"strings"
+
+	"github.com/joho/godotenv"
+	"golang.org/x/exp/maps"
 
 	"github.com/sirupsen/logrus"
 
@@ -82,6 +86,10 @@ func (w *WorkspaceHandler) Cmd() error {
 		if err := w.DownloadDefault(); err != nil {
 			return err
 		}
+	} else if w.cfg.WorkspaceCmd.Command == "activate" && w.cfg.WorkspaceCmd.Name == "default" {
+		if err := w.LoadWorkspaceEnvVars(); err != nil {
+			return err
+		}
 	} else {
 		return fmt.Errorf("the only supported command is:\nspc workspace download default")
 	}
@@ -116,6 +124,64 @@ func (w *WorkspaceHandler) downloadFile(filepath string, url string) error {
 	w.log.Tracef("saving at: %s\n", filepath)
 	_, err = io.Copy(out, resp.Body)
 	return err
+}
+
+func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+	src := fmt.Sprintf("%s/.spc/workspaces/default", usr.HomeDir)
+
+	items, _ := os.ReadDir(src)
+	envVars := map[string]string{}
+
+	for _, item := range items {
+		fullItemPath := fmt.Sprintf("%s/%s", src, item.Name())
+		isDotEnvFile := !item.IsDir() && strings.HasPrefix(item.Name(), ".") && strings.HasSuffix(item.Name(), ".env")
+
+		isJSONFile := !item.IsDir() && strings.HasSuffix(item.Name(), ".json")
+		if isDotEnvFile {
+			w.log.Debugf("found env file: %s ..", fullItemPath)
+			vars, err := godotenv.Read(fullItemPath)
+			if err != nil {
+				w.log.Warnf("failed to load %s", fullItemPath)
+			}
+			maps.Copy(envVars, vars)
+		}
+
+		if isJSONFile {
+			w.log.Debugf("found JSON file: %s ..", fullItemPath)
+
+			content, err := os.ReadFile(fullItemPath)
+			if err != nil {
+				return err
+			}
+
+			var b map[string]interface{}
+			err = json.Unmarshal(content, &b)
+			if err != nil {
+				return err
+			}
+			bStr := map[string]string{}
+			for k, v := range b {
+				bStr[k] = fmt.Sprintf("%s", v)
+			}
+
+			maps.Copy(envVars, bStr)
+		}
+	}
+
+	envPrefixVars := map[string]string{}
+	for k, v := range envVars {
+		key := fmt.Sprintf("SPC_%s", strings.ToUpper(k))
+		envPrefixVars[key] = v
+	}
+
+	tmp, _ := json.Marshal(envPrefixVars)
+	w.log.Infof("loaded vars: %s", tmp)
+
+	return nil
 }
 
 func NewWorkspaceHandler(cfg *config.Config, log *logrus.Logger) *WorkspaceHandler {

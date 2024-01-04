@@ -11,7 +11,7 @@ const (
 )
 
 type GethConfig struct {
-	GethPortHTTP string
+	GethPortHTTP string `arg:"env:GETH_PORT_HTTP"`
 	GethPortTCP  string
 }
 

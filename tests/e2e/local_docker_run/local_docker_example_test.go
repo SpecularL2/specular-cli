@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/SpecularL2/specular-cli/internal/spc"
+
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/stretchr/testify/require"
-
-	"github.com/SpecularL2/specular-cli/internal/spc"
 )
 
 func (s *LocalDockerTestSuite) TestExample() {
