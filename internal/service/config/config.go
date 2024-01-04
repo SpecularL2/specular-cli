@@ -90,7 +90,7 @@ type ActivateCmd struct {
 type WorkspaceCmd struct {
 	Download *DownloadCmd `arg:"subcommand:download"`
 	Activate *ActivateCmd `arg:"subcommand:activate"`
-	Name     string       `arg:"--workspace-name" default:"default" help:"name of the workspace"`
+	Name     string       `arg:"-n,--name" default:"default" help:"name of the workspace"`
 }
 
 type Args struct {

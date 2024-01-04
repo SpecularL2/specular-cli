@@ -128,7 +128,11 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 	}
 	src := fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.Args.Workspace.Name)
 
-	items, _ := os.ReadDir(src)
+	items, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
 	envVars := map[string]string{}
 
 	for _, item := range items {
