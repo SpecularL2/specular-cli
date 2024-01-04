@@ -46,3 +46,7 @@ build: build-linux
 wire-generate:
 	cd internal/service/di ;\
 	wire
+
+.PHONY: test # Run tests
+test:
+	go test --short ./...

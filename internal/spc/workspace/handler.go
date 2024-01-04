@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/user"
 
-	"github.com/SpecularL2/specular-cli/internal/service/config"
 	"github.com/sirupsen/logrus"
+
+	"github.com/SpecularL2/specular-cli/internal/service/config"
 )
 
 const defaultRepository = "specularL2/specular"
@@ -24,7 +24,7 @@ type WorkspaceHandler struct {
 
 type ConfigFile struct {
 	DownloadUrl string `json:"download_url"`
-	Name string `json:"name"`
+	Name        string `json:"name"`
 }
 
 func (w *WorkspaceHandler) DownloadDefault() error {
@@ -34,7 +34,7 @@ func (w *WorkspaceHandler) DownloadDefault() error {
 	}
 
 	dst := fmt.Sprintf("%s/.spc/workspaces/default", usr.HomeDir)
-	// TODO: ask for confirmation if workspace already exists 
+	// TODO: ask for confirmation if workspace already exists
 	if err = os.RemoveAll(dst); err != nil {
 		return err
 	}
@@ -49,14 +49,19 @@ func (w *WorkspaceHandler) DownloadDefault() error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			w.log.Fatal(err)
+		}
+	}(resp.Body)
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
 
-	files := []ConfigFile{}
+	var files []ConfigFile
 	err = json.Unmarshal(body, &files)
 	if err != nil {
 		return err
@@ -90,13 +95,23 @@ func (w *WorkspaceHandler) downloadFile(filepath string, url string) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			w.log.Fatal(err)
+		}
+	}(resp.Body)
 
 	out, err := os.Create(filepath)
 	if err != nil {
 		return err
 	}
-	defer out.Close()
+	defer func(out *os.File) {
+		err := out.Close()
+		if err != nil {
+			w.log.Fatal(err)
+		}
+	}(out)
 
 	w.log.Tracef("saving at: %s\n", filepath)
 	_, err = io.Copy(out, resp.Body)
