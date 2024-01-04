@@ -87,9 +87,13 @@ type DownloadCmd struct {
 type ActivateCmd struct {
 }
 
+type ListCmd struct {
+}
+
 type WorkspaceCmd struct {
 	Download *DownloadCmd `arg:"subcommand:download"`
 	Activate *ActivateCmd `arg:"subcommand:activate"`
+	List *ListCmd `arg:"subcommand:list"`
 	Name     string       `arg:"-n,--name" default:"default" help:"name of the workspace"`
 }
 

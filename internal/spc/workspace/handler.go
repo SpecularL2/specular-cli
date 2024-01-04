@@ -85,6 +85,8 @@ func (w *WorkspaceHandler) Cmd() error {
 		return w.DownloadConfig()
 	case w.cfg.Args.Workspace.Activate != nil:
 		return w.LoadWorkspaceEnvVars()
+	case w.cfg.Args.Workspace.List != nil:
+		return w.ListWorkspaces()
 	}
 
 	w.log.Warn("no command found, exiting...")
@@ -180,6 +182,25 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 	tmp, _ := json.Marshal(envPrefixVars)
 	w.log.Infof("loaded vars: %s", tmp)
 
+	return nil
+}
+
+func (w *WorkspaceHandler) ListWorkspaces() error {
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+	src := fmt.Sprintf("%s/.spc/workspaces/", usr.HomeDir)
+	items, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range items {
+		if item.IsDir() {
+			w.log.Infof("\t%s", item.Name())
+		}
+	}
 	return nil
 }
 
