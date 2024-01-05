@@ -128,7 +128,14 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 	if err != nil {
 		return err
 	}
-	src := fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.Args.Workspace.Name)
+
+	var src string
+	if w.cfg.Args.Workspace != nil {
+		src = fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.Args.Workspace.Name)
+	} else {
+		// TODO: refactor once activation feature is ready, it should use the currently active workspace as default
+		src = fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, "default")
+	}
 
 	items, err := os.ReadDir(src)
 	if err != nil {
@@ -177,6 +184,10 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 	for k, v := range envVars {
 		key := fmt.Sprintf("SPC_%s", strings.ToUpper(k))
 		envPrefixVars[key] = v
+		err := os.Setenv(key, v)
+		if err != nil {
+			w.log.Warnf("could not set env var: %s=%s", key, v)
+		}
 	}
 
 	tmp, _ := json.Marshal(envPrefixVars)

@@ -55,3 +55,7 @@ spc -h
 - Run docker image with built-in `spc` command and download `default` workspace setup:
 
     `docker run spc workspace download`
+
+- Run docker image with workspace environment variables context, e.g.:
+
+    `spc run 'docker run -e L1_ENDPOINT=$SPC_L1_ENDPOINT -e NETWORK_ID=$SPC_NETWORK_ID ubuntu /bin/env'`
