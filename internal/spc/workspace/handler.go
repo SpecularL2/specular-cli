@@ -17,8 +17,6 @@ import (
 	"github.com/SpecularL2/specular-cli/internal/service/config"
 )
 
-const defaultRepository = "specularL2/specular"
-const defaultWorkspacePath = "config/local_devnet"
 const githubUrl = "https://api.github.com/repos/%s/contents/%s"
 
 type WorkspaceHandler struct {
@@ -31,13 +29,13 @@ type ConfigFile struct {
 	Name        string `json:"name"`
 }
 
-func (w *WorkspaceHandler) DownloadDefault() error {
+func (w *WorkspaceHandler) DownloadConfig() error {
 	usr, err := user.Current()
 	if err != nil {
 		return err
 	}
 
-	dst := fmt.Sprintf("%s/.spc/workspaces/default", usr.HomeDir)
+	dst := fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.Args.Workspace.Name)
 	// TODO: ask for confirmation if workspace already exists
 	if err = os.RemoveAll(dst); err != nil {
 		return err
@@ -48,7 +46,7 @@ func (w *WorkspaceHandler) DownloadDefault() error {
 	}
 	w.log.Infof("saving workspace at: %s", dst)
 
-	orig := fmt.Sprintf(githubUrl, defaultRepository, defaultWorkspacePath)
+	orig := fmt.Sprintf(githubUrl, w.cfg.Args.Workspace.Download.ConfigRepo, w.cfg.Args.Workspace.Download.ConfigPath)
 	resp, err := http.Get(orig)
 	if err != nil {
 		return err
@@ -82,17 +80,16 @@ func (w *WorkspaceHandler) DownloadDefault() error {
 }
 
 func (w *WorkspaceHandler) Cmd() error {
-	if w.cfg.WorkspaceCmd.Command == "download" && w.cfg.WorkspaceCmd.Name == "default" {
-		if err := w.DownloadDefault(); err != nil {
-			return err
-		}
-	} else if w.cfg.WorkspaceCmd.Command == "activate" && w.cfg.WorkspaceCmd.Name == "default" {
-		if err := w.LoadWorkspaceEnvVars(); err != nil {
-			return err
-		}
-	} else {
-		return fmt.Errorf("the only supported command is:\nspc workspace download default")
+	switch {
+	case w.cfg.Args.Workspace.Download != nil:
+		return w.DownloadConfig()
+	case w.cfg.Args.Workspace.Activate != nil:
+		return w.LoadWorkspaceEnvVars()
+	case w.cfg.Args.Workspace.List != nil:
+		return w.ListWorkspaces()
 	}
+
+	w.log.Warn("no command found, exiting...")
 	return nil
 }
 
@@ -131,9 +128,13 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 	if err != nil {
 		return err
 	}
-	src := fmt.Sprintf("%s/.spc/workspaces/default", usr.HomeDir)
+	src := fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.Args.Workspace.Name)
 
-	items, _ := os.ReadDir(src)
+	items, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
 	envVars := map[string]string{}
 
 	for _, item := range items {
@@ -181,6 +182,25 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 	tmp, _ := json.Marshal(envPrefixVars)
 	w.log.Infof("loaded vars: %s", tmp)
 
+	return nil
+}
+
+func (w *WorkspaceHandler) ListWorkspaces() error {
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+	src := fmt.Sprintf("%s/.spc/workspaces/", usr.HomeDir)
+	items, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
+	for _, item := range items {
+		if item.IsDir() {
+			w.log.Infof("\t%s", item.Name())
+		}
+	}
 	return nil
 }
 
