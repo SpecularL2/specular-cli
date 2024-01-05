@@ -4,7 +4,7 @@ Specular CLI - toolkit for L2 integration and testing
 ## Run with Docker
 
 ```shell
-local_docker build . -t spc && local_docker run spc -h
+docker build . -t spc && docker run spc -h
 ```
 
 ## Run local
@@ -37,3 +37,21 @@ After compilation, you can use `spc` and place in your system:
 sudo cp dist/linux/spc /usr/bin/spc
 spc -h
 ```
+
+## Examples of use
+
+- Download `default` workspace setup from Specular GitHub repo:
+
+    `spc workspace download`
+
+- Activate `default` workspace:
+
+    `spc workspace activate`
+
+- Run docker with-in the active workspace environment:
+
+    `spc run 'docker run -e RUN_BY=$USERNAME ubuntu /bin/env'`
+
+- Run docker image with built-in `spc` command and download `default` workspace setup:
+
+    `docker run spc workspace download`

@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/SpecularL2/specular-cli/internal/spc/executor"
+
 	"github.com/SpecularL2/specular-cli/internal/spc/workspace"
 
 	"github.com/sirupsen/logrus"
@@ -26,6 +28,7 @@ type Application struct {
 	config *config.Config
 
 	workspace *workspace.WorkspaceHandler
+	executor  *executor.RunHandler
 }
 
 func (app *Application) Run() error {
@@ -39,6 +42,8 @@ func (app *Application) Run() error {
 	errGroup, _ := errgroup.WithContext(app.ctx)
 
 	switch {
+	case app.config.Args.Run != nil:
+		return app.executor.Cmd()
 	case app.config.Args.Workspace != nil:
 		return app.workspace.Cmd()
 	}

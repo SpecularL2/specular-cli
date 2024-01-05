@@ -93,13 +93,18 @@ type ListCmd struct {
 type WorkspaceCmd struct {
 	Download *DownloadCmd `arg:"subcommand:download"`
 	Activate *ActivateCmd `arg:"subcommand:activate"`
-	List *ListCmd `arg:"subcommand:list"`
+	List     *ListCmd     `arg:"subcommand:list"`
 	Name     string       `arg:"-n,--name" default:"default" help:"name of the workspace"`
+}
+
+type RunCmd struct {
+	Command string `arg:"positional" placeholder:"CMD" default:"echo $SPC_WORKSPACE" help:"command to run in SPC environment"`
 }
 
 type Args struct {
 	Workspace *WorkspaceCmd `arg:"subcommand:workspace"`
-	LogLevel  string `arg:"-v,--verbosity" help:"set the log level"`
+	Run       *RunCmd       `arg:"subcommand:run"`
+	LogLevel  string        `arg:"-v,--verbosity" help:"set the log level"`
 }
 
 type Config struct {

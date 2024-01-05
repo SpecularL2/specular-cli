@@ -8,6 +8,7 @@ package di
 
 import (
 	"github.com/SpecularL2/specular-cli/internal/service/config"
+	"github.com/SpecularL2/specular-cli/internal/spc/executor"
 	"github.com/SpecularL2/specular-cli/internal/spc/workspace"
 )
 
@@ -22,11 +23,13 @@ func SetupApplication() (*Application, func(), error) {
 	cancelChannel := config.NewCancelChannel()
 	context := config.NewContext(logger, cancelChannel)
 	workspaceHandler := workspace.NewWorkspaceHandler(configConfig, logger)
+	runHandler := executor.NewRunHandler(configConfig, logger)
 	application := &Application{
 		ctx:       context,
 		log:       logger,
 		config:    configConfig,
 		workspace: workspaceHandler,
+		executor:  runHandler,
 	}
 	return application, func() {
 	}, nil
@@ -37,11 +40,13 @@ func SetupApplicationForIntegrationTests(cfg *config.Config) (*TestApplication, 
 	cancelChannel := config.NewCancelChannel()
 	context := config.NewContext(logger, cancelChannel)
 	workspaceHandler := workspace.NewWorkspaceHandler(cfg, logger)
+	runHandler := executor.NewRunHandler(cfg, logger)
 	application := &Application{
 		ctx:       context,
 		log:       logger,
 		config:    cfg,
 		workspace: workspaceHandler,
+		executor:  runHandler,
 	}
 	testApplication := &TestApplication{
 		Application: application,

@@ -43,7 +43,6 @@ func NewIntegrationTestSetup(t *testing.T, ctx context.Context, cluster integrat
 	t.Helper()
 
 	cfg := &config.Config{
-		LogLevel:  "debug",
 		Workspace: cluster.Workspace(),
 	}
 
