@@ -103,7 +103,7 @@ func (w *WorkspaceHandler) SetWorkspace() error {
 	workspaceDir := fmt.Sprintf("%s/.spc/workspaces/", usr.HomeDir)
 	selectedWorkspace := fmt.Sprintf("%s%s", workspaceDir, w.cfg.Args.Workspace.Set.Name)
 
-	if _,err := os.Stat(selectedWorkspace); err != nil {
+	if _, err := os.Stat(selectedWorkspace); err != nil {
 		w.log.Fatalf("could not find workspace with name: %s", w.cfg.Args.Workspace.Set.Name)
 		return nil
 	}
@@ -114,7 +114,11 @@ func (w *WorkspaceHandler) SetWorkspace() error {
 		os.Remove(activePath)
 	}
 
-	os.Symlink(selectedWorkspace, activePath)
+	err = os.Symlink(selectedWorkspace, activePath)
+	if err != nil {
+		return err
+	}
+
 	w.log.Infof("set workspace %s as active", w.cfg.Args.Workspace.Set.Name)
 	return nil
 }

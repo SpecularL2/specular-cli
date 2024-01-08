@@ -96,7 +96,7 @@ type ListCmd struct {
 
 type WorkspaceCmd struct {
 	Download *DownloadCmd `arg:"subcommand:download"`
-	Set *SetCmd `arg:"subcommand:set"`
+	Set      *SetCmd      `arg:"subcommand:set"`
 	Activate *ActivateCmd `arg:"subcommand:activate"`
 	List     *ListCmd     `arg:"subcommand:list"`
 	Name     string       `arg:"-n,--name" default:"default" help:"name of the workspace"`
