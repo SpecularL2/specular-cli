@@ -7,7 +7,7 @@ Specular CLI - toolkit for L2 integration and testing
 docker build . -t spc && docker run spc -h
 ```
 
-## Run local
+## Development
 
 ### Linux
 ```shell
@@ -28,6 +28,14 @@ make build-macos
 ```
 
 To use `spc` as short command please add this to your `PATH`.
+
+### Git hooks
+
+Before making any commit make sure you have hooks configured locally:
+
+```shell
+git config --local core.hooksPath .githooks/
+```
 
 ## Install
 
