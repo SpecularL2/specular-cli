@@ -84,6 +84,10 @@ type DownloadCmd struct {
 	ConfigRepo string `arg:"--config-repository" default:"specularL2/specular" help:"github repository to pull config from"`
 }
 
+type SetCmd struct {
+	Name string `arg:"positional"`
+}
+
 type ActivateCmd struct {
 }
 
@@ -92,6 +96,7 @@ type ListCmd struct {
 
 type WorkspaceCmd struct {
 	Download *DownloadCmd `arg:"subcommand:download"`
+	Set      *SetCmd      `arg:"subcommand:set"`
 	Activate *ActivateCmd `arg:"subcommand:activate"`
 	List     *ListCmd     `arg:"subcommand:list"`
 	Name     string       `arg:"-n,--name" default:"default" help:"name of the workspace"`

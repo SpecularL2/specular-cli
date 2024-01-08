@@ -85,11 +85,41 @@ func (w *WorkspaceHandler) Cmd() error {
 		return w.DownloadConfig()
 	case w.cfg.Args.Workspace.Activate != nil:
 		return w.LoadWorkspaceEnvVars()
+	case w.cfg.Args.Workspace.Set != nil:
+		return w.SetWorkspace()
 	case w.cfg.Args.Workspace.List != nil:
 		return w.ListWorkspaces()
 	}
 
 	w.log.Warn("no command found, exiting...")
+	return nil
+}
+
+func (w *WorkspaceHandler) SetWorkspace() error {
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+	workspaceDir := fmt.Sprintf("%s/.spc/workspaces/", usr.HomeDir)
+	selectedWorkspace := fmt.Sprintf("%s%s", workspaceDir, w.cfg.Args.Workspace.Set.Name)
+
+	if _, err := os.Stat(selectedWorkspace); err != nil {
+		w.log.Fatalf("could not find workspace with name: %s", w.cfg.Args.Workspace.Set.Name)
+		return nil
+	}
+
+	activePath := fmt.Sprintf("%s%s", workspaceDir, "active_workspace")
+	if _, err := os.Lstat(activePath); err == nil {
+		w.log.Trace("removing existing active workspacet")
+		os.Remove(activePath)
+	}
+
+	err = os.Symlink(selectedWorkspace, activePath)
+	if err != nil {
+		return err
+	}
+
+	w.log.Infof("set workspace %s as active", w.cfg.Args.Workspace.Set.Name)
 	return nil
 }
 
@@ -129,15 +159,14 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 		return err
 	}
 
-	var src string
-	if w.cfg.Args.Workspace != nil {
-		src = fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, w.cfg.Args.Workspace.Name)
-	} else {
-		// TODO: refactor once activation feature is ready, it should use the currently active workspace as default
-		src = fmt.Sprintf("%s/.spc/workspaces/%s", usr.HomeDir, "default")
+	activeWorkspace := fmt.Sprintf("%s/.spc/workspaces/active_workspace", usr.HomeDir)
+	_, err = os.Stat(activeWorkspace)
+	if err != nil {
+		w.log.Fatalf("no active workspace set")
+		return nil
 	}
 
-	items, err := os.ReadDir(src)
+	items, err := os.ReadDir(activeWorkspace)
 	if err != nil {
 		return err
 	}
@@ -145,7 +174,7 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 	envVars := map[string]string{}
 
 	for _, item := range items {
-		fullItemPath := fmt.Sprintf("%s/%s", src, item.Name())
+		fullItemPath := fmt.Sprintf("%s/%s", activeWorkspace, item.Name())
 		isDotEnvFile := !item.IsDir() && strings.HasPrefix(item.Name(), ".") && strings.HasSuffix(item.Name(), ".env")
 
 		isJSONFile := !item.IsDir() && strings.HasSuffix(item.Name(), ".json")
