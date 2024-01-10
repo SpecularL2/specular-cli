@@ -5,9 +5,9 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/SpecularL2/specular-cli/internal/spc/handlers/workspace"
 	"github.com/SpecularL2/specular-cli/internal/spc/handlers/exec"
 	"github.com/SpecularL2/specular-cli/internal/spc/handlers/up"
+	"github.com/SpecularL2/specular-cli/internal/spc/handlers/workspace"
 
 	"github.com/sirupsen/logrus"
 
@@ -29,7 +29,7 @@ type Application struct {
 
 	workspace *workspace.WorkspaceHandler
 	executor  *exec.RunHandler
-	up *up.UpHandler
+	up        *up.UpHandler
 }
 
 func (app *Application) Run() error {

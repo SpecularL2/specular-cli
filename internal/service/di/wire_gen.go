@@ -9,8 +9,8 @@ package di
 import (
 	"github.com/SpecularL2/specular-cli/internal/service/config"
 	"github.com/SpecularL2/specular-cli/internal/spc/handlers/exec"
-	"github.com/SpecularL2/specular-cli/internal/spc/handlers/workspace"
 	"github.com/SpecularL2/specular-cli/internal/spc/handlers/up"
+	"github.com/SpecularL2/specular-cli/internal/spc/handlers/workspace"
 )
 
 // Injectors from inject.go:
@@ -32,7 +32,7 @@ func SetupApplication() (*Application, func(), error) {
 		config:    cfg,
 		workspace: workspaceHandler,
 		executor:  runHandler,
-		up: upHandler,
+		up:        upHandler,
 	}
 	return application, func() {
 	}, nil
@@ -51,7 +51,7 @@ func SetupApplicationForIntegrationTests(cfg *config.Config) (*TestApplication, 
 		config:    cfg,
 		workspace: workspaceHandler,
 		executor:  runHandler,
-		up: upHandler,
+		up:        upHandler,
 	}
 	testApplication := &TestApplication{
 		Application: application,

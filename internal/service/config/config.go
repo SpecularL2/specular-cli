@@ -110,6 +110,7 @@ type L1GethCmd struct {
 }
 
 type SpGethCmd struct {
+	Flags map[string]string `arg:"positional"`
 }
 
 type SpMagiCmd struct {
@@ -119,9 +120,9 @@ type SidecarCmd struct {
 }
 
 type UpCmd struct {
-	L1Geth *L1GethCmd `arg:"subcommand:l1geth"`
-	SpGeth *SpGethCmd `arg:"subcommand:spgeth"`
-	SpMagi *SpMagiCmd `arg:"subcommand:spmagi"`
+	L1Geth  *L1GethCmd  `arg:"subcommand:l1geth"`
+	SpGeth  *SpGethCmd  `arg:"subcommand:spgeth"`
+	SpMagi  *SpMagiCmd  `arg:"subcommand:spmagi"`
 	Sidecar *SidecarCmd `arg:"subcommand:sidecar"`
 }
 
