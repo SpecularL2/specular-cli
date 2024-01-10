@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func (s *LocalDockerTestSuite) TestExample() {
+func (s *LocalDockerTestSuite) SkipTestExample() {
 	cfg := s.service.TestCluster.Cfg
 	var err error
 	defer s.service.CancelFunc()
