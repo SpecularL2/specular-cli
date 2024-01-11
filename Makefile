@@ -34,7 +34,7 @@ build-linux:
 .PHONY: build-macos # Build macOS binary
 build-macos:
 	mkdir -p $(DIST_MACOS)
-	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 $(GO_BUILD) -o ./$(DIST_MACOS)/$(BINARY_NAME) -v $(CMD_PATH)
+	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 $(GO_BUILD) -o ./$(DIST_MACOS)/$(BINARY_NAME)-macos-arm64 -v $(CMD_PATH)
 
 .PHONY: build # Build Linux binary (alias)
 build:
