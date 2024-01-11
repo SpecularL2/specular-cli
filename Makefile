@@ -1,6 +1,6 @@
 GO_CMD=go
 GO_BUILD=$(GO_CMD) build
-CMD_PATH=./cmd/main.go
+CMD_PATH=./cmd/spc/main.go
 DIST=dist
 DIST_LINUX=$(DIST)/linux
 DIST_MACOS=$(DIST)/macos
