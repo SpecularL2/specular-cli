@@ -5,9 +5,9 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/SpecularL2/specular-cli/internal/spc/executor"
-
-	"github.com/SpecularL2/specular-cli/internal/spc/workspace"
+	"github.com/SpecularL2/specular-cli/internal/spc/handlers/exec"
+	"github.com/SpecularL2/specular-cli/internal/spc/handlers/up"
+	"github.com/SpecularL2/specular-cli/internal/spc/handlers/workspace"
 
 	"github.com/sirupsen/logrus"
 
@@ -28,7 +28,8 @@ type Application struct {
 	config *config.Config
 
 	workspace *workspace.WorkspaceHandler
-	executor  *executor.RunHandler
+	executor  *exec.RunHandler
+	up        *up.UpHandler
 }
 
 func (app *Application) Run() error {
@@ -42,10 +43,12 @@ func (app *Application) Run() error {
 	errGroup, _ := errgroup.WithContext(app.ctx)
 
 	switch {
-	case app.config.Args.Run != nil:
+	case app.config.Args.Exec != nil:
 		return app.executor.Cmd()
 	case app.config.Args.Workspace != nil:
 		return app.workspace.Cmd()
+	case app.config.Args.Up != nil:
+		return app.up.Cmd()
 	}
 
 	err := errGroup.Wait()

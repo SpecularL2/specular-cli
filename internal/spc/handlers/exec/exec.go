@@ -1,11 +1,11 @@
-package executor
+package exec
 
 import (
 	"os"
 	"os/exec"
 	"strings"
 
-	"github.com/SpecularL2/specular-cli/internal/spc/workspace"
+	"github.com/SpecularL2/specular-cli/internal/spc/handlers/workspace"
 
 	"github.com/sirupsen/logrus"
 
@@ -19,12 +19,17 @@ type RunHandler struct {
 }
 
 func (r *RunHandler) Cmd() error {
+	return r.RunStringCommand()
+}
+
+func (r *RunHandler) RunStringCommand() error {
+	// TODO: handle case where there is no active workspace
 	err := r.workspace.LoadWorkspaceEnvVars()
 	if err != nil {
 		return err
 	}
 
-	commandToRun := os.ExpandEnv(r.cfg.Args.Run.Command)
+	commandToRun := os.ExpandEnv(r.cfg.Args.Exec.Command)
 	args := strings.Fields(commandToRun)
 
 	if len(args) > 0 {

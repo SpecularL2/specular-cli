@@ -102,13 +102,34 @@ type WorkspaceCmd struct {
 	Name     string       `arg:"-n,--name" default:"default" help:"name of the workspace"`
 }
 
-type RunCmd struct {
+type ExecCmd struct {
 	Command string `arg:"positional" placeholder:"CMD" default:"echo $SPC_WORKSPACE" help:"command to run in SPC environment"`
+}
+
+type L1GethCmd struct {
+}
+
+type SpGethCmd struct {
+	Flags map[string]string `arg:"positional"`
+}
+
+type SpMagiCmd struct {
+}
+
+type SidecarCmd struct {
+}
+
+type UpCmd struct {
+	L1Geth  *L1GethCmd  `arg:"subcommand:l1geth"`
+	SpGeth  *SpGethCmd  `arg:"subcommand:spgeth"`
+	SpMagi  *SpMagiCmd  `arg:"subcommand:spmagi"`
+	Sidecar *SidecarCmd `arg:"subcommand:sidecar"`
 }
 
 type Args struct {
 	Workspace *WorkspaceCmd `arg:"subcommand:workspace"`
-	Run       *RunCmd       `arg:"subcommand:run"`
+	Exec      *ExecCmd      `arg:"subcommand:exec"`
+	Up        *UpCmd        `arg:"subcommand:up"`
 	LogLevel  string        `arg:"-v,--verbosity" help:"set the log level"`
 }
 

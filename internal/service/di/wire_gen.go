@@ -8,28 +8,31 @@ package di
 
 import (
 	"github.com/SpecularL2/specular-cli/internal/service/config"
-	"github.com/SpecularL2/specular-cli/internal/spc/executor"
-	"github.com/SpecularL2/specular-cli/internal/spc/workspace"
+	"github.com/SpecularL2/specular-cli/internal/spc/handlers/exec"
+	"github.com/SpecularL2/specular-cli/internal/spc/handlers/up"
+	"github.com/SpecularL2/specular-cli/internal/spc/handlers/workspace"
 )
 
 // Injectors from inject.go:
 
 func SetupApplication() (*Application, func(), error) {
-	configConfig, err := config.NewConfig()
+	cfg, err := config.NewConfig()
 	if err != nil {
 		return nil, nil, err
 	}
-	logger := config.NewLogger(configConfig)
+	logger := config.NewLogger(cfg)
 	cancelChannel := config.NewCancelChannel()
 	context := config.NewContext(logger, cancelChannel)
-	workspaceHandler := workspace.NewWorkspaceHandler(configConfig, logger)
-	runHandler := executor.NewRunHandler(configConfig, logger, workspaceHandler)
+	workspaceHandler := workspace.NewWorkspaceHandler(cfg, logger)
+	runHandler := exec.NewRunHandler(cfg, logger, workspaceHandler)
+	upHandler := up.NewUpHandler(cfg, logger)
 	application := &Application{
 		ctx:       context,
 		log:       logger,
-		config:    configConfig,
+		config:    cfg,
 		workspace: workspaceHandler,
 		executor:  runHandler,
+		up:        upHandler,
 	}
 	return application, func() {
 	}, nil
@@ -40,13 +43,15 @@ func SetupApplicationForIntegrationTests(cfg *config.Config) (*TestApplication, 
 	cancelChannel := config.NewCancelChannel()
 	context := config.NewContext(logger, cancelChannel)
 	workspaceHandler := workspace.NewWorkspaceHandler(cfg, logger)
-	runHandler := executor.NewRunHandler(cfg, logger, workspaceHandler)
+	runHandler := exec.NewRunHandler(cfg, logger, workspaceHandler)
+	upHandler := up.NewUpHandler(cfg, logger)
 	application := &Application{
 		ctx:       context,
 		log:       logger,
 		config:    cfg,
 		workspace: workspaceHandler,
 		executor:  runHandler,
+		up:        upHandler,
 	}
 	testApplication := &TestApplication{
 		Application: application,
