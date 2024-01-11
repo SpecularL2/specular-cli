@@ -1,3 +1,5 @@
+name: Build and release
+
 on:
   push:
     branches:
@@ -28,4 +30,4 @@ jobs:
       - uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.tag_version.outputs.new_tag }}
-          artifacts: "./dist/linux/spc-linux-amd64,./dist/macos/compuinvest-macos-arm64"
+          artifacts: "./dist/linux/spc-linux-amd64,./dist/macos/spc-macos-arm64"
