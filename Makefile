@@ -1,13 +1,10 @@
 GO_CMD=go
 GO_BUILD=$(GO_CMD) build
-CMD_PATH=./cmd/spc/main.go
+CMD_PATH=./cmd/main.go
 DIST=dist
 DIST_LINUX=$(DIST)/linux
 DIST_MACOS=$(DIST)/macos
 BINARY_NAME=spc
-REPO=$(shell .github/scripts/reponame.sh)
-DOCKER_BUILD_ARGS=($BUILD_ARGS)
-GIT_TAG=$(TAG)
 
 .PHONY: help # Help - list of targets with descriptions
 help:
@@ -32,7 +29,7 @@ lint: lint-test
 .PHONY: build-linux # Build Linux binary
 build-linux:
 	mkdir -p $(DIST_LINUX)
-	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 $(GO_BUILD) -o ./$(DIST_LINUX)/$(BINARY_NAME) -v $(CMD_PATH)
+	CGO_ENABLED=1 GOOS=linux GOARCH=amd64 $(GO_BUILD) -o ./$(DIST_LINUX)/$(BINARY_NAME)-linux-amd64 -v $(CMD_PATH)
 
 .PHONY: build-macos # Build macOS binary
 build-macos:
@@ -40,7 +37,9 @@ build-macos:
 	CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 $(GO_BUILD) -o ./$(DIST_MACOS)/$(BINARY_NAME) -v $(CMD_PATH)
 
 .PHONY: build # Build Linux binary (alias)
-build: build-linux
+build:
+	make build-linux
+	make build-macos
 
 .PHONY: wire-generate # Generate Wire bindings
 wire-generate:
