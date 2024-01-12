@@ -107,6 +107,7 @@ type ExecCmd struct {
 }
 
 type L1GethCmd struct {
+	Flags map[string]string `arg:"positional"`
 }
 
 type SpGethCmd struct {
@@ -114,9 +115,11 @@ type SpGethCmd struct {
 }
 
 type SpMagiCmd struct {
+	Flags map[string]string `arg:"positional"`
 }
 
 type SidecarCmd struct {
+	Flags map[string]string `arg:"positional"`
 }
 
 type UpCmd struct {

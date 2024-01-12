@@ -25,7 +25,7 @@ func SetupApplication() (*Application, func(), error) {
 	context := config.NewContext(logger, cancelChannel)
 	workspaceHandler := workspace.NewWorkspaceHandler(cfg, logger)
 	runHandler := exec.NewRunHandler(cfg, logger, workspaceHandler)
-	upHandler := up.NewUpHandler(cfg, logger)
+	upHandler := up.NewUpHandler(cfg, logger, workspaceHandler)
 	application := &Application{
 		ctx:       context,
 		log:       logger,
@@ -44,7 +44,7 @@ func SetupApplicationForIntegrationTests(cfg *config.Config) (*TestApplication, 
 	context := config.NewContext(logger, cancelChannel)
 	workspaceHandler := workspace.NewWorkspaceHandler(cfg, logger)
 	runHandler := exec.NewRunHandler(cfg, logger, workspaceHandler)
-	upHandler := up.NewUpHandler(cfg, logger)
+	upHandler := up.NewUpHandler(cfg, logger, workspaceHandler)
 	application := &Application{
 		ctx:       context,
 		log:       logger,
