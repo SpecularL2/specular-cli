@@ -29,17 +29,13 @@ func (u *UpHandler) Cmd() error {
 }
 
 func (u *UpHandler) StartSpGeth() error {
+	// TODO: implement overriding flags
 	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.SpGeth.Flags)
-
-	err := u.workspace.LoadWorkspaceEnvVars()
-	if err != nil {
-		return err
-	}
 
 	// TODO: 
 	//	- all of the flag values should be changable
 	//	- inject values directly instead of loading via env? 
-	spGeth := ".$SPC_SP_GETH_BIN " +
+	spGethCommand := ".$SPC_SP_GETH_BIN " +
 	"--datadir $SPC_DATA_DIR " +
 	"--networkid $SPC_NETWORK_ID " +
 	"--http " +
@@ -62,38 +58,18 @@ func (u *UpHandler) StartSpGeth() error {
 	"--maxpeers 0 " +
 	"--syncmode full "
 
-	commandToRun := os.ExpandEnv(spGeth)
-	args := strings.Fields(commandToRun)
-	u.log.Infof("Running: %s", args)
-
-	if len(args) > 0 {
-		cmd := exec.Command(args[0], args[1:]...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		if err := cmd.Run(); err != nil {
-			u.log.Warn("Up failed with:", err)
-			if exitError, ok := err.(*exec.ExitError); ok {
-				os.Exit(exitError.ExitCode())
-			}
-		}
-	}
-	return nil
+	return u.RunStringCommand(spGethCommand)
 }
 
 func (u *UpHandler) StartL1Geth() error {
-	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.SpGeth.Flags)
-
-	err := u.workspace.LoadWorkspaceEnvVars()
-	if err != nil {
-		return err
-	}
+	// TODO: implement overriding flags
+	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.L1Geth.Flags)
 
 	// TODO: 
 	//	- all of the flag values should be changable
 	//	- inject values directly instead of loading via env? 
 	//	- save L1 GETH config in workspace (currently it's in start L1 script
-	spGeth := ".$SPC_L1_GETH_BIN " +
+	l1GethCommand := ".$SPC_L1_GETH_BIN " +
 	"--dev " +
 	"--dev.period $L1_PERIOD " +
 	"--verbosity 0 " +
@@ -105,17 +81,35 @@ func (u *UpHandler) StartL1Geth() error {
 	"--ws.addr 0.0.0.0 " +
 	"--ws.port $L1_PORT &>$LOG_FILE &"
 
-	commandToRun := os.ExpandEnv(spGeth)
+	return u.RunStringCommand(l1GethCommand)
+}
+
+func (u *UpHandler) StartSpMagi() error {
+	return nil
+}
+
+func (u *UpHandler) StartSidecar() error {
+	return nil
+}
+
+func (u *UpHandler) RunStringCommand(cmd string) error {
+
+	// TODO: handle case where there is no active workspace
+	err := u.workspace.LoadWorkspaceEnvVars()
+	if err != nil {
+		return err
+	}
+
+	commandToRun := os.ExpandEnv(cmd)
 	args := strings.Fields(commandToRun)
-	u.log.Infof("Running: %s", args)
 
 	if len(args) > 0 {
+		u.log.Debugf("Running: %s %v", commandToRun, args)
 		cmd := exec.Command(args[0], args[1:]...)
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 		cmd.Stdin = os.Stdin
 		if err := cmd.Run(); err != nil {
-			u.log.Warn("Up failed with:", err)
 			if exitError, ok := err.(*exec.ExitError); ok {
 				os.Exit(exitError.ExitCode())
 			}
