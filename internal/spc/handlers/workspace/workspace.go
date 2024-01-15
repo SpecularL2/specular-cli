@@ -6,8 +6,8 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/user"
 	"os/exec"
+	"os/user"
 	"strings"
 
 	"github.com/joho/godotenv"

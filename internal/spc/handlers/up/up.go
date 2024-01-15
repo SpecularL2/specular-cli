@@ -8,8 +8,8 @@ import (
 )
 
 type UpHandler struct {
-	cfg *config.Config
-	log *logrus.Logger
+	cfg       *config.Config
+	log       *logrus.Logger
 	workspace *workspace.WorkspaceHandler
 }
 
@@ -32,31 +32,31 @@ func (u *UpHandler) StartSpGeth() error {
 	// TODO: implement overriding flags
 	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.SpGeth.Flags)
 
-	// TODO: 
+	// TODO:
 	//	- all of the flag values should be changable
-	//	- inject values directly instead of loading via env? 
+	//	- inject values directly instead of loading via env?
 	spGethCommand := ".$SPC_SP_GETH_BIN " +
-	"--datadir $SPC_DATA_DIR " +
-	"--networkid $SPC_NETWORK_ID " +
-	"--http " +
-	"--http.addr $SPC_ADDRESS " +
-	"--http.port $SPC_HTTP_PORT " +
-	"--http.api engine,personal,eth,net,web3,txpool,miner,debug " +
-	"--http.corsdomain=* " +
-	"--http.vhosts=* " +
-	"--ws " +
-	"--ws.addr $SPC_ADDRESS " +
-	"--ws.port $SPC_WS_PORT " +
-	"--ws.api engine,personal,eth,net,web3,txpool,miner,debug " +
-	"--ws.origins=* " +
-	"--authrpc.vhosts=* " +
-	"--authrpc.addr $SPC_ADDRESS " +
-	"--authrpc.port $SPC_AUTH_PORT " +
-	"--authrpc.jwtsecret $SPC_JWT_SECRET_PATH " +
-	"--miner.recommit 0 " +
-	"--nodiscover " +
-	"--maxpeers 0 " +
-	"--syncmode full "
+		"--datadir $SPC_DATA_DIR " +
+		"--networkid $SPC_NETWORK_ID " +
+		"--http " +
+		"--http.addr $SPC_ADDRESS " +
+		"--http.port $SPC_HTTP_PORT " +
+		"--http.api engine,personal,eth,net,web3,txpool,miner,debug " +
+		"--http.corsdomain=* " +
+		"--http.vhosts=* " +
+		"--ws " +
+		"--ws.addr $SPC_ADDRESS " +
+		"--ws.port $SPC_WS_PORT " +
+		"--ws.api engine,personal,eth,net,web3,txpool,miner,debug " +
+		"--ws.origins=* " +
+		"--authrpc.vhosts=* " +
+		"--authrpc.addr $SPC_ADDRESS " +
+		"--authrpc.port $SPC_AUTH_PORT " +
+		"--authrpc.jwtsecret $SPC_JWT_SECRET_PATH " +
+		"--miner.recommit 0 " +
+		"--nodiscover " +
+		"--maxpeers 0 " +
+		"--syncmode full "
 
 	return u.workspace.RunStringCommand(spGethCommand)
 }
@@ -65,21 +65,21 @@ func (u *UpHandler) StartL1Geth() error {
 	// TODO: implement overriding flags
 	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.L1Geth.Flags)
 
-	// TODO: 
+	// TODO:
 	//	- all of the flag values should be changable
-	//	- inject values directly instead of loading via env? 
+	//	- inject values directly instead of loading via env?
 	//	- save L1 GETH config in workspace (currently it's in start L1 script
 	l1GethCommand := ".$SPC_L1_GETH_BIN " +
-	"--dev " +
-	"--dev.period $L1_PERIOD " +
-	"--verbosity 0 " +
-	"--http " +
-	"--http.api eth,web3,net " +
-	"--http.addr 0.0.0.0 " +
-	"--ws " +
-	"--ws.api eth,net,web3 " +
-	"--ws.addr 0.0.0.0 " +
-	"--ws.port $L1_PORT &>$LOG_FILE &"
+		"--dev " +
+		"--dev.period $L1_PERIOD " +
+		"--verbosity 0 " +
+		"--http " +
+		"--http.api eth,web3,net " +
+		"--http.addr 0.0.0.0 " +
+		"--ws " +
+		"--ws.api eth,net,web3 " +
+		"--ws.addr 0.0.0.0 " +
+		"--ws.port $L1_PORT &>$LOG_FILE &"
 
 	return u.workspace.RunStringCommand(l1GethCommand)
 }
@@ -88,18 +88,18 @@ func (u *UpHandler) StartSpMagi() error {
 	// TODO: implement overriding flags
 	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.SpMagi.Flags)
 
-	// TODO: handle sync, devnet, sequencer settings here, not in sbin 
+	// TODO: handle sync, devnet, sequencer settings here, not in sbin
 	spMagiCommand := ".$SPC_SP_MAGI_BIN" +
-	"--network $SPC_NETWORK " +
-	"--l1-rpc-url $SPC_L1_RPC_URL " +
-	"--l2-rpc-url $SPC_L2_RPC_URL " +
-	"--sync-mode $SPC_SYNC_MODE " +
-	"--l2-engine-url $SPC_L2_ENGINE_URL " +
-	"--jwt-file $SPC_JWT_SECRET_PATH " +
-	"--rpc-port $SPC_RPC_PORT " +
-	"$SYNC_FLAGS $DEVNET_FLAGS $SEQUENCER_FLAGS $@"
+		"--network $SPC_NETWORK " +
+		"--l1-rpc-url $SPC_L1_RPC_URL " +
+		"--l2-rpc-url $SPC_L2_RPC_URL " +
+		"--sync-mode $SPC_SYNC_MODE " +
+		"--l2-engine-url $SPC_L2_ENGINE_URL " +
+		"--jwt-file $SPC_JWT_SECRET_PATH " +
+		"--rpc-port $SPC_RPC_PORT " +
+		"$SYNC_FLAGS $DEVNET_FLAGS $SEQUENCER_FLAGS $@"
 
-	return u.workspace.RunStringCommand(spMagiCommand) 
+	return u.workspace.RunStringCommand(spMagiCommand)
 }
 
 func (u *UpHandler) StartSidecar() error {
@@ -108,23 +108,23 @@ func (u *UpHandler) StartSidecar() error {
 
 	// TODO: easily toggle disseminator & toggle
 	sidecarCommand := ".$SPC_SIDECAR_BIN" +
-	"--l1.endpoint $SPC_L1_ENDPOINT" +
-	"--l2.endpoint $SPC_L2_ENDPOINT" +
-	"--protocol.rollup-cfg-path $SPC_ROLLUP_CFG_PATH" +
-	"--disseminator" +
-	"--disseminator.private-key $SPC_DISSEMINATOR_PRIV_KEY" +
-	"--disseminator.sub-safety-margin $SPC_DISSEMINATOR_SUB_SAFETY_MARGIN" +
-	"--disseminator.target-batch-size $SPC_DISSEMINATOR_TARGET_BATCH_SIZE" +
-	"--validator" +
-	"--validator.private-key $SPC_VALIDATOR_PRIV_KEY"
+		"--l1.endpoint $SPC_L1_ENDPOINT" +
+		"--l2.endpoint $SPC_L2_ENDPOINT" +
+		"--protocol.rollup-cfg-path $SPC_ROLLUP_CFG_PATH" +
+		"--disseminator" +
+		"--disseminator.private-key $SPC_DISSEMINATOR_PRIV_KEY" +
+		"--disseminator.sub-safety-margin $SPC_DISSEMINATOR_SUB_SAFETY_MARGIN" +
+		"--disseminator.target-batch-size $SPC_DISSEMINATOR_TARGET_BATCH_SIZE" +
+		"--validator" +
+		"--validator.private-key $SPC_VALIDATOR_PRIV_KEY"
 
 	return u.workspace.RunStringCommand(sidecarCommand)
 }
 
 func NewUpHandler(cfg *config.Config, log *logrus.Logger, workspace *workspace.WorkspaceHandler) *UpHandler {
 	return &UpHandler{
-		cfg: cfg,
-		log: log,
+		cfg:       cfg,
+		log:       log,
 		workspace: workspace,
 	}
 }

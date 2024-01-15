@@ -1,4 +1,4 @@
-package exec 
+package exec
 
 import (
 	"github.com/SpecularL2/specular-cli/internal/spc/handlers/workspace"
