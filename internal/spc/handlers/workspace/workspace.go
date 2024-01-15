@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/user"
+	"os/exec"
 	"strings"
 
 	"github.com/joho/godotenv"
@@ -244,6 +245,31 @@ func (w *WorkspaceHandler) ListWorkspaces() error {
 	return nil
 }
 
+// run a string command in the context of the currently active workspace
+func (w *WorkspaceHandler) RunStringCommand(cmd string) error {
+	// TODO: handle case where there is no active workspace
+	err := w.LoadWorkspaceEnvVars()
+	if err != nil {
+		return err
+	}
+
+	commandToRun := os.ExpandEnv(cmd)
+	args := strings.Fields(commandToRun)
+
+	if len(args) > 0 {
+		w.log.Debugf("Running: %s %v", commandToRun, args)
+		cmd := exec.Command(args[0], args[1:]...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Stdin = os.Stdin
+		if err := cmd.Run(); err != nil {
+			if exitError, ok := err.(*exec.ExitError); ok {
+				os.Exit(exitError.ExitCode())
+			}
+		}
+	}
+	return nil
+}
 func NewWorkspaceHandler(cfg *config.Config, log *logrus.Logger) *WorkspaceHandler {
 	return &WorkspaceHandler{
 		cfg: cfg,

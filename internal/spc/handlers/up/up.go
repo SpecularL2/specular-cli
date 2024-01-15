@@ -1,10 +1,6 @@
 package up
 
 import (
-	"os"
-	"os/exec"
-	"strings"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/SpecularL2/specular-cli/internal/service/config"
@@ -62,7 +58,7 @@ func (u *UpHandler) StartSpGeth() error {
 	"--maxpeers 0 " +
 	"--syncmode full "
 
-	return u.RunStringCommand(spGethCommand)
+	return u.workspace.RunStringCommand(spGethCommand)
 }
 
 func (u *UpHandler) StartL1Geth() error {
@@ -85,7 +81,7 @@ func (u *UpHandler) StartL1Geth() error {
 	"--ws.addr 0.0.0.0 " +
 	"--ws.port $L1_PORT &>$LOG_FILE &"
 
-	return u.RunStringCommand(l1GethCommand)
+	return u.workspace.RunStringCommand(l1GethCommand)
 }
 
 func (u *UpHandler) StartSpMagi() error {
@@ -103,7 +99,7 @@ func (u *UpHandler) StartSpMagi() error {
 	"--rpc-port $SPC_RPC_PORT " +
 	"$SYNC_FLAGS $DEVNET_FLAGS $SEQUENCER_FLAGS $@"
 
-	return u.RunStringCommand(spMagiCommand) 
+	return u.workspace.RunStringCommand(spMagiCommand) 
 }
 
 func (u *UpHandler) StartSidecar() error {
@@ -122,33 +118,7 @@ func (u *UpHandler) StartSidecar() error {
 	"--validator" +
 	"--validator.private-key $SPC_VALIDATOR_PRIV_KEY"
 
-	return u.RunStringCommand(sidecarCommand)
-}
-
-// TODO: move implementation to workspace
-func (u *UpHandler) RunStringCommand(cmd string) error {
-	// TODO: handle case where there is no active workspace
-	err := u.workspace.LoadWorkspaceEnvVars()
-	if err != nil {
-		return err
-	}
-
-	commandToRun := os.ExpandEnv(cmd)
-	args := strings.Fields(commandToRun)
-
-	if len(args) > 0 {
-		u.log.Debugf("Running: %s %v", commandToRun, args)
-		cmd := exec.Command(args[0], args[1:]...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		if err := cmd.Run(); err != nil {
-			if exitError, ok := err.(*exec.ExitError); ok {
-				os.Exit(exitError.ExitCode())
-			}
-		}
-	}
-	return nil
+	return u.workspace.RunStringCommand(sidecarCommand)
 }
 
 func NewUpHandler(cfg *config.Config, log *logrus.Logger, workspace *workspace.WorkspaceHandler) *UpHandler {
