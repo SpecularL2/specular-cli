@@ -23,6 +23,10 @@ func (u *UpHandler) Cmd() error {
 		return u.StartSpGeth()
 	case u.cfg.Args.Up.L1Geth != nil:
 		return u.StartL1Geth()
+	case u.cfg.Args.Up.SpMagi != nil:
+		return u.StartSpMagi()
+	case u.cfg.Args.Up.Sidecar != nil:
+		return u.StartSidecar()
 	}
 	u.log.Warn("no command found, exiting...")
 	return nil
@@ -85,15 +89,44 @@ func (u *UpHandler) StartL1Geth() error {
 }
 
 func (u *UpHandler) StartSpMagi() error {
-	return nil
+	// TODO: implement overriding flags
+	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.SpMagi.Flags)
+
+	// TODO: handle sync, devnet, sequencer settings here, not in sbin 
+	spMagiCommand := ".$SPC_SP_MAGI_BIN" +
+	"--network $SPC_NETWORK " +
+	"--l1-rpc-url $SPC_L1_RPC_URL " +
+	"--l2-rpc-url $SPC_L2_RPC_URL " +
+	"--sync-mode $SPC_SYNC_MODE " +
+	"--l2-engine-url $SPC_L2_ENGINE_URL " +
+	"--jwt-file $SPC_JWT_SECRET_PATH " +
+	"--rpc-port $SPC_RPC_PORT " +
+	"$SYNC_FLAGS $DEVNET_FLAGS $SEQUENCER_FLAGS $@"
+
+	return u.RunStringCommand(spMagiCommand) 
 }
 
 func (u *UpHandler) StartSidecar() error {
-	return nil
+	// TODO: implement overriding flags
+	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.SpMagi.Flags)
+
+	// TODO: easily toggle disseminator & toggle
+	sidecarCommand := ".$SPC_SIDECAR_BIN" +
+	"--l1.endpoint $SPC_L1_ENDPOINT" +
+	"--l2.endpoint $SPC_L2_ENDPOINT" +
+	"--protocol.rollup-cfg-path $SPC_ROLLUP_CFG_PATH" +
+	"--disseminator" +
+	"--disseminator.private-key $SPC_DISSEMINATOR_PRIV_KEY" +
+	"--disseminator.sub-safety-margin $SPC_DISSEMINATOR_SUB_SAFETY_MARGIN" +
+	"--disseminator.target-batch-size $SPC_DISSEMINATOR_TARGET_BATCH_SIZE" +
+	"--validator" +
+	"--validator.private-key $SPC_VALIDATOR_PRIV_KEY"
+
+	return u.RunStringCommand(sidecarCommand)
 }
 
+// TODO: move implementation to workspace
 func (u *UpHandler) RunStringCommand(cmd string) error {
-
 	// TODO: handle case where there is no active workspace
 	err := u.workspace.LoadWorkspaceEnvVars()
 	if err != nil {
