@@ -246,29 +246,39 @@ func (w *WorkspaceHandler) ListWorkspaces() error {
 }
 
 // run a string command in the context of the currently active workspace
-func (w *WorkspaceHandler) RunStringCommand(cmd string) error {
-	// TODO: handle case where there is no active workspace
+func (w *WorkspaceHandler) RunStringCommand(strCmd string) (*exec.Cmd, error) {
 	err := w.LoadWorkspaceEnvVars()
 	if err != nil {
-		return err
+		return &exec.Cmd{}, err
 	}
 
-	commandToRun := os.ExpandEnv(cmd)
-	args := strings.Fields(commandToRun)
+	args := strings.Fields(os.ExpandEnv(strCmd))
 
-	if len(args) > 0 {
-		w.log.Debugf("Running: %s %v", commandToRun, args)
-		cmd := exec.Command(args[0], args[1:]...)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		if err := cmd.Run(); err != nil {
-			if exitError, ok := err.(*exec.ExitError); ok {
-				os.Exit(exitError.ExitCode())
-			}
-		}
+	usr, err := user.Current()
+	if err != nil {
+		return &exec.Cmd{}, err
 	}
-	return nil
+
+	activeWorkspace := fmt.Sprintf("%s/.spc/workspaces/active_workspace", usr.HomeDir)
+	_, err = os.Stat(activeWorkspace)
+	if err != nil {
+		return &exec.Cmd{}, fmt.Errorf("no active workspace found")
+	}
+
+	w.log.Info(args)
+
+	cmd := exec.Command(args[0], args[1:]...)
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	if err := cmd.Start(); err != nil {
+		w.log.Error(err)
+		return cmd, err
+	}
+
+	return cmd, nil
 }
 func NewWorkspaceHandler(cfg *config.Config, log *logrus.Logger) *WorkspaceHandler {
 	return &WorkspaceHandler{

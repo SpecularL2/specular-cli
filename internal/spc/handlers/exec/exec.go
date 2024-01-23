@@ -15,8 +15,15 @@ type RunHandler struct {
 }
 
 func (r *RunHandler) Cmd() error {
-	cmd := r.cfg.Args.Exec.Command
-	return r.workspace.RunStringCommand(cmd)
+	strCmd := r.cfg.Args.Exec.Command
+	cmd, err := r.workspace.RunStringCommand(strCmd)
+	if err != nil {
+		return err
+	}
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewRunHandler(cfg *config.Config, log *logrus.Logger, w *workspace.WorkspaceHandler) *RunHandler {

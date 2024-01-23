@@ -1,6 +1,10 @@
 package up
 
 import (
+	"fmt"
+	"os"
+	"strconv"
+
 	"github.com/sirupsen/logrus"
 
 	"github.com/SpecularL2/specular-cli/internal/service/config"
@@ -56,33 +60,83 @@ func (u *UpHandler) StartSpGeth() error {
 		"--miner.recommit 0 " +
 		"--nodiscover " +
 		"--maxpeers 0 " +
-		"--syncmode full "
+		"--syncmode full"
 
-	return u.workspace.RunStringCommand(spGethCommand)
+	cmd, err := u.workspace.RunStringCommand(spGethCommand)
+	if err != nil {
+		return err
+	}
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (u *UpHandler) StartL1Geth() error {
 	// TODO: implement overriding flags
 	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.L1Geth.Flags)
 
-	// TODO:
-	//	- all of the flag values should be changable
-	//	- inject values directly instead of loading via env?
-	//	- save L1 GETH config in workspace (currently it's in start L1 script
+	period := 3
+	value, ok := os.LookupEnv("L1_PERIOD")
+	if ok {
+		parsedVal, err := strconv.Atoi(value)
+		period = parsedVal
+		if err != nil {
+			return fmt.Errorf("invalid L1_PERIOD: %s", err)
+		}
+	} else {
+		os.Setenv("L1_PERIOD", fmt.Sprint(period))
+	}
+	u.log.Debugf("set block time to %ds", period)
+
+	// TODO: try to read this from $SPC_L1_ENDPOINT which is already set in ENV
+	if _, ok := os.LookupEnv("L1_PORT"); !ok {
+		os.Setenv("L1_PORT", "8545")
+	}
+
 	l1GethCommand := ".$SPC_L1_GETH_BIN " +
 		"--dev " +
 		"--dev.period $L1_PERIOD " +
-		"--verbosity 0 " +
+		"--verbosity 3 " +
 		"--http " +
 		"--http.api eth,web3,net " +
 		"--http.addr 0.0.0.0 " +
 		"--ws " +
 		"--ws.api eth,net,web3 " +
 		"--ws.addr 0.0.0.0 " +
-		"--ws.port $L1_PORT &>$LOG_FILE &"
+		"--ws.port $L1_PORT"
 
-	return u.workspace.RunStringCommand(l1GethCommand)
+	u.log.Info("starting L1 geth")
+	cmd, err := u.workspace.RunStringCommand(l1GethCommand)
+	if err != nil {
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+	return nil
 }
+
+// TODO
+// func (u *UpHandler) fundL1Accounts() error {
+// 	u.log.Info("funding accounts")
+//
+// 	var addressesToFund = []string{
+// 		"$SPC_SEQUENCER_ADDRESS",
+// 		"$SPC_VALIDATOR_ADDRESS",
+// 		"$SPC_DEPLOYER_ADDRESS",
+// 	}
+//
+// 	for _, addressName := range addressesToFund {
+// 		address, ok := os.LookupEnv(addressName)
+// 		if !ok {
+// 			return fmt.Errorf("could not get address: %s", addressName)
+// 		}
+// 		u.log.Infof("funding %s", address)
+// 	}
+// 	return nil
+// }
 
 func (u *UpHandler) StartSpMagi() error {
 	// TODO: implement overriding flags
@@ -99,7 +153,14 @@ func (u *UpHandler) StartSpMagi() error {
 		"--rpc-port $SPC_RPC_PORT " +
 		"$SYNC_FLAGS $DEVNET_FLAGS $SEQUENCER_FLAGS $@"
 
-	return u.workspace.RunStringCommand(spMagiCommand)
+	cmd, err := u.workspace.RunStringCommand(spMagiCommand)
+	if err != nil {
+		return err
+	}
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (u *UpHandler) StartSidecar() error {
@@ -118,7 +179,14 @@ func (u *UpHandler) StartSidecar() error {
 		"--validator" +
 		"--validator.private-key $SPC_VALIDATOR_PRIV_KEY"
 
-	return u.workspace.RunStringCommand(sidecarCommand)
+	cmd, err := u.workspace.RunStringCommand(sidecarCommand)
+	if err != nil {
+		return err
+	}
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewUpHandler(cfg *config.Config, log *logrus.Logger, workspace *workspace.WorkspaceHandler) *UpHandler {
