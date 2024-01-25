@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/user"
 	"strings"
 
@@ -47,6 +48,8 @@ func (w *WorkspaceHandler) DownloadConfig() error {
 	w.log.Infof("saving workspace at: %s", dst)
 
 	orig := fmt.Sprintf(githubUrl, w.cfg.Args.Workspace.Download.ConfigRepo, w.cfg.Args.Workspace.Download.ConfigPath)
+	w.log.Debugf("getting config from URL: %s", orig)
+
 	resp, err := http.Get(orig)
 	if err != nil {
 		return err
@@ -70,6 +73,13 @@ func (w *WorkspaceHandler) DownloadConfig() error {
 	}
 
 	for _, file := range files {
+		// ignoring the blockscout config directory
+		// TODO: actually handle nested config
+		if file.DownloadUrl == "" {
+			continue
+		}
+
+		w.log.Debugf("getting file: %s", file.DownloadUrl)
 		filePath := dst + "/" + file.Name
 		if err = w.downloadFile(filePath, file.DownloadUrl); err != nil {
 			return err
@@ -209,18 +219,22 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 		}
 	}
 
+	// TODO: should this be set in .paths.env instead?
+	os.Setenv("WORKSPACE_DIR", fmt.Sprintf("%s/.spc/workspaces/active_workspace", usr.HomeDir))
+
 	envPrefixVars := map[string]string{}
 	for k, v := range envVars {
 		key := fmt.Sprintf("SPC_%s", strings.ToUpper(k))
-		envPrefixVars[key] = v
-		err := os.Setenv(key, v)
+		value := os.ExpandEnv(v)
+		envPrefixVars[key] = value
+		err := os.Setenv(key, value)
 		if err != nil {
-			w.log.Warnf("could not set env var: %s=%s", key, v)
+			w.log.Warnf("could not set env var: %s=%s", key, value)
 		}
 	}
 
 	tmp, _ := json.Marshal(envPrefixVars)
-	w.log.Infof("loaded vars: %s", tmp)
+	w.log.Debugf("loaded vars: %s", tmp)
 
 	return nil
 }
@@ -244,6 +258,40 @@ func (w *WorkspaceHandler) ListWorkspaces() error {
 	return nil
 }
 
+// run a string command in the context of the currently active workspace
+func (w *WorkspaceHandler) RunStringCommand(strCmd string) (*exec.Cmd, error) {
+	err := w.LoadWorkspaceEnvVars()
+	if err != nil {
+		return &exec.Cmd{}, err
+	}
+
+	args := strings.Fields(os.ExpandEnv(strCmd))
+
+	usr, err := user.Current()
+	if err != nil {
+		return &exec.Cmd{}, err
+	}
+
+	activeWorkspace := fmt.Sprintf("%s/.spc/workspaces/active_workspace", usr.HomeDir)
+	_, err = os.Stat(activeWorkspace)
+	if err != nil {
+		return &exec.Cmd{}, fmt.Errorf("no active workspace found")
+	}
+
+	w.log.Infof("running cmd: %s", args[0])
+	w.log.Infof("with flags: %s", args[1:])
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	if err := cmd.Start(); err != nil {
+		w.log.Error(err)
+		return cmd, err
+	}
+
+	return cmd, nil
+}
 func NewWorkspaceHandler(cfg *config.Config, log *logrus.Logger) *WorkspaceHandler {
 	return &WorkspaceHandler{
 		cfg: cfg,
