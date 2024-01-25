@@ -48,6 +48,8 @@ func (w *WorkspaceHandler) DownloadConfig() error {
 	w.log.Infof("saving workspace at: %s", dst)
 
 	orig := fmt.Sprintf(githubUrl, w.cfg.Args.Workspace.Download.ConfigRepo, w.cfg.Args.Workspace.Download.ConfigPath)
+	w.log.Debugf("getting config from URL: %s", orig)
+
 	resp, err := http.Get(orig)
 	if err != nil {
 		return err
@@ -71,6 +73,13 @@ func (w *WorkspaceHandler) DownloadConfig() error {
 	}
 
 	for _, file := range files {
+		// ignoring the blockscout config directory
+		// TODO: actually handle nested config
+		if file.DownloadUrl == "" {
+			continue
+		}
+
+		w.log.Debugf("getting file: %s", file.DownloadUrl)
 		filePath := dst + "/" + file.Name
 		if err = w.downloadFile(filePath, file.DownloadUrl); err != nil {
 			return err
@@ -210,18 +219,22 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 		}
 	}
 
+	// TODO: should this be set in .paths.env instead?
+	os.Setenv("WORKSPACE_DIR", fmt.Sprintf("%s/.spc/workspaces/active_workspace", usr.HomeDir))
+
 	envPrefixVars := map[string]string{}
 	for k, v := range envVars {
 		key := fmt.Sprintf("SPC_%s", strings.ToUpper(k))
-		envPrefixVars[key] = v
-		err := os.Setenv(key, v)
+		value := os.ExpandEnv(v)
+		envPrefixVars[key] = value
+		err := os.Setenv(key, value)
 		if err != nil {
-			w.log.Warnf("could not set env var: %s=%s", key, v)
+			w.log.Warnf("could not set env var: %s=%s", key, value)
 		}
 	}
 
 	tmp, _ := json.Marshal(envPrefixVars)
-	w.log.Infof("loaded vars: %s", tmp)
+	w.log.Debugf("loaded vars: %s", tmp)
 
 	return nil
 }
@@ -265,10 +278,9 @@ func (w *WorkspaceHandler) RunStringCommand(strCmd string) (*exec.Cmd, error) {
 		return &exec.Cmd{}, fmt.Errorf("no active workspace found")
 	}
 
-	w.log.Info(args)
-
+	w.log.Infof("running cmd: %s", args[0])
+	w.log.Infof("with flags: %s", args[1:])
 	cmd := exec.Command(args[0], args[1:]...)
-
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin

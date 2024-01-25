@@ -1,9 +1,18 @@
 package up
 
 import (
+	"context"
+	"crypto/ecdsa"
 	"fmt"
+	"math/big"
 	"os"
+	"os/user"
 	"strconv"
+	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/sirupsen/logrus"
 
@@ -15,6 +24,12 @@ type UpHandler struct {
 	cfg       *config.Config
 	log       *logrus.Logger
 	workspace *workspace.WorkspaceHandler
+}
+
+type CallArgs struct {
+	from *common.Address
+	to *common.Address
+	value *big.Int
 }
 
 func (u *UpHandler) Cmd() error {
@@ -39,8 +54,9 @@ func (u *UpHandler) StartSpGeth() error {
 	// TODO:
 	//	- all of the flag values should be changable
 	//	- inject values directly instead of loading via env?
+	//	- workspace path should be parsed when reading in the .env file
 	spGethCommand := ".$SPC_SP_GETH_BIN " +
-		"--datadir $SPC_DATA_DIR " +
+		"--datadir $WORKSPACE_DIR$SPC_DATA_DIR " +
 		"--networkid $SPC_NETWORK_ID " +
 		"--http " +
 		"--http.addr $SPC_ADDRESS " +
@@ -56,7 +72,7 @@ func (u *UpHandler) StartSpGeth() error {
 		"--authrpc.vhosts=* " +
 		"--authrpc.addr $SPC_ADDRESS " +
 		"--authrpc.port $SPC_AUTH_PORT " +
-		"--authrpc.jwtsecret $SPC_JWT_SECRET_PATH " +
+		"--authrpc.jwtsecret $WORKSPACE_DIR$SPC_JWT_SECRET_PATH " +
 		"--miner.recommit 0 " +
 		"--nodiscover " +
 		"--maxpeers 0 " +
@@ -112,31 +128,77 @@ func (u *UpHandler) StartL1Geth() error {
 		return err
 	}
 
+	u.log.Infof("waiting for %ds (1 block) before funding accounts", period)
+
+	time.Sleep(time.Second * time.Duration(period))
+
 	if err := cmd.Wait(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// TODO
-// func (u *UpHandler) fundL1Accounts() error {
-// 	u.log.Info("funding accounts")
-//
-// 	var addressesToFund = []string{
-// 		"$SPC_SEQUENCER_ADDRESS",
-// 		"$SPC_VALIDATOR_ADDRESS",
-// 		"$SPC_DEPLOYER_ADDRESS",
-// 	}
-//
-// 	for _, addressName := range addressesToFund {
-// 		address, ok := os.LookupEnv(addressName)
-// 		if !ok {
-// 			return fmt.Errorf("could not get address: %s", addressName)
-// 		}
-// 		u.log.Infof("funding %s", address)
-// 	}
-// 	return nil
-// }
+func (u *UpHandler) fundL1Accounts() error {
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	client, err := ethclient.Dial("http://127.0.0.1:8545")
+	if err != nil {
+		return err
+	}
+
+	header, err := client.HeaderByNumber(context.Background(), big.NewInt(0))
+	if err != nil {
+		return err
+	}
+
+	// TODO: make pk files configurable
+	workspaceDir := "%s/.spc/workspaces/active_workspace/%s"
+	var possiblePKFiles = []string{
+		"sequencer_pk.txt",
+		"validator_pk.txt",
+		"deployer_pk.txt",
+	}
+
+	for _, name := range possiblePKFiles {
+		filePath := fmt.Sprintf(workspaceDir, usr.HomeDir, name)
+		privateKey, err := crypto.LoadECDSA(filePath)
+		if err != nil {
+			u.log.Debugf("did not find: %s: %s", name, err)
+			continue
+		}
+
+		privateKeyECDSA, ok := privateKey.Public().(*ecdsa.PublicKey)
+		if !ok {
+			u.log.Warnf("could not parse key from: %s: %s", name, err)
+
+		}
+
+		toAddress := crypto.PubkeyToAddress(*privateKeyECDSA)
+		u.log.Infof("got pk for: %s", toAddress.String())
+
+		err = client.Client().Call(
+			"eth_sendTransaction",
+			header.Coinbase.Hex(),
+			toAddress.Hex(),
+			big.NewInt(10000),
+		)
+		if err != nil {
+			u.log.Warn(err)	
+			return err
+		}
+
+		u.log.Info("funded account")
+		time.Sleep(time.Second * 3)
+		balance, err := client.BalanceAt(context.Background(), toAddress, nil)
+		u.log.Info(balance)
+
+	}
+
+	return nil
+}
 
 func (u *UpHandler) StartSpMagi() error {
 	// TODO: implement overriding flags
