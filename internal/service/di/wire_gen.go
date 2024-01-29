@@ -9,6 +9,7 @@ package di
 import (
 	"github.com/SpecularL2/specular-cli/internal/service/config"
 	"github.com/SpecularL2/specular-cli/internal/spc/handlers/exec"
+	"github.com/SpecularL2/specular-cli/internal/spc/handlers/test"
 	"github.com/SpecularL2/specular-cli/internal/spc/handlers/up"
 	"github.com/SpecularL2/specular-cli/internal/spc/handlers/workspace"
 )
@@ -26,6 +27,7 @@ func SetupApplication() (*Application, func(), error) {
 	workspaceHandler := workspace.NewWorkspaceHandler(cfg, logger)
 	runHandler := exec.NewRunHandler(cfg, logger, workspaceHandler)
 	upHandler := up.NewUpHandler(cfg, logger, workspaceHandler)
+	testHandler := test.NewTestHandler(cfg, logger, workspaceHandler)
 	application := &Application{
 		ctx:       context,
 		log:       logger,
@@ -33,6 +35,7 @@ func SetupApplication() (*Application, func(), error) {
 		workspace: workspaceHandler,
 		executor:  runHandler,
 		up:        upHandler,
+		test:      testHandler,
 	}
 	return application, func() {
 	}, nil
@@ -45,6 +48,7 @@ func SetupApplicationForIntegrationTests(cfg *config.Config) (*TestApplication, 
 	workspaceHandler := workspace.NewWorkspaceHandler(cfg, logger)
 	runHandler := exec.NewRunHandler(cfg, logger, workspaceHandler)
 	upHandler := up.NewUpHandler(cfg, logger, workspaceHandler)
+	testHandler := test.NewTestHandler(cfg, logger, workspaceHandler)
 	application := &Application{
 		ctx:       context,
 		log:       logger,
@@ -52,6 +56,7 @@ func SetupApplicationForIntegrationTests(cfg *config.Config) (*TestApplication, 
 		workspace: workspaceHandler,
 		executor:  runHandler,
 		up:        upHandler,
+		test:      testHandler,
 	}
 	testApplication := &TestApplication{
 		Application: application,

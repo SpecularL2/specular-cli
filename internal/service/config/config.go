@@ -129,10 +129,19 @@ type UpCmd struct {
 	Sidecar *SidecarCmd `arg:"subcommand:sidecar"`
 }
 
+type TestCmd struct {
+	Fuzzer *FuzzerCmd `arg:"subcommand:fuzzer"`
+}
+
+type FuzzerCmd struct {
+	NumTx int `arg:"--num-tx" default:"10"`
+}
+
 type Args struct {
 	Workspace *WorkspaceCmd `arg:"subcommand:workspace"`
 	Exec      *ExecCmd      `arg:"subcommand:exec"`
 	Up        *UpCmd        `arg:"subcommand:up"`
+	Test      *TestCmd      `arg:"subcommand:test"`
 	LogLevel  string        `arg:"-v,--verbosity" help:"set the log level"`
 }
 
