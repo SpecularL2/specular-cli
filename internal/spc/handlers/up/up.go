@@ -239,24 +239,41 @@ func (u *UpHandler) StartSpMagi() error {
 
 func (u *UpHandler) StartSidecar() error {
 	disseminatorFlags := "--disseminator " +
-		"--disseminator.private-key $SPC_DISSEMINATOR_PRIV_KEY " +
+		"--disseminator.private-key %s " +
 		"--disseminator.sub-safety-margin $SPC_DISSEMINATOR_SUB_SAFETY_MARGIN " +
 		"--disseminator.target-batch-size $SPC_DISSEMINATOR_TARGET_BATCH_SIZE "
 
 	validatorFlags := "--validator " +
-		"--validator.private-key $SPC_VALIDATOR_PRIV_KEY "
+		"--validator.private-key %s "
 
 	sidecarCommand := ".$SPC_SIDECAR_BIN " +
 		"--l1.endpoint $SPC_L1_ENDPOINT " +
 		"--l2.endpoint $SPC_L2_ENDPOINT " +
-		"--protocol.rollup-cfg-path $SPC_ROLLUP_CFG_PATH "
+		"--protocol.rollup-cfg-path $WORKSPACE_DIR/$SPC_ROLLUP_CFG_PATH "
 
 	if u.cfg.Args.Up.Sidecar.Disseminator {
-		sidecarCommand += disseminatorFlags
+		if err := u.workspace.LoadWorkspaceEnvVars(); err != nil {
+			return err
+		}
+		pkBytes, err := os.ReadFile(os.ExpandEnv("$WORKSPACE_DIR/$SPC_SEQUENCER_PK_PATH"))
+		if err != nil {
+			return nil
+		}
+
+		sidecarCommand += fmt.Sprintf(disseminatorFlags, pkBytes)
 	}
 
 	if u.cfg.Args.Up.Sidecar.Validator {
-		sidecarCommand += validatorFlags
+		if err := u.workspace.LoadWorkspaceEnvVars(); err != nil {
+			return err
+		}
+
+		pkBytes, err := os.ReadFile(os.ExpandEnv("$WORKSPACE_DIR/$SPC_VALIDATOR_PK_PATH"))
+		if err != nil {
+			return nil
+		}
+
+		sidecarCommand += fmt.Sprintf(validatorFlags, pkBytes)
 	}
 
 	cmd, err := u.workspace.RunStringCommand(sidecarCommand)
