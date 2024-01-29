@@ -119,6 +119,8 @@ type SpMagiCmd struct {
 }
 
 type SidecarCmd struct {
+	Disseminator bool `arg:"--disseminator"`
+	Validator    bool `arg:"--validator"`
 }
 
 type UpCmd struct {
