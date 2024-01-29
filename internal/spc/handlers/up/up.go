@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 
@@ -26,6 +27,7 @@ type UpHandler struct {
 	workspace *workspace.WorkspaceHandler
 }
 
+// nolint:unused
 type CallArgs struct {
 	from  *common.Address
 	to    *common.Address
@@ -138,7 +140,7 @@ func (u *UpHandler) StartL1Geth() error {
 	return nil
 }
 
-func (u *UpHandler) fundL1Accounts() error {
+func (u *UpHandler) fundL1Accounts() error { // nolint:unused
 	usr, err := user.Current()
 	if err != nil {
 		return err
@@ -192,9 +194,8 @@ func (u *UpHandler) fundL1Accounts() error {
 
 		u.log.Info("funded account")
 		time.Sleep(time.Second * 3)
-		balance, err := client.BalanceAt(context.Background(), toAddress, nil)
+		balance, _ := client.BalanceAt(context.Background(), toAddress, nil)
 		u.log.Info(balance)
-
 	}
 
 	return nil
