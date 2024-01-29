@@ -27,8 +27,8 @@ type UpHandler struct {
 }
 
 type CallArgs struct {
-	from *common.Address
-	to *common.Address
+	from  *common.Address
+	to    *common.Address
 	value *big.Int
 }
 
@@ -186,7 +186,7 @@ func (u *UpHandler) fundL1Accounts() error {
 			big.NewInt(10000),
 		)
 		if err != nil {
-			u.log.Warn(err)	
+			u.log.Warn(err)
 			return err
 		}
 

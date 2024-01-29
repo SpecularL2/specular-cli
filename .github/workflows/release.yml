@@ -31,3 +31,12 @@ jobs:
         with:
           tag: ${{ steps.tag_version.outputs.new_tag }}
           artifacts: "./dist/linux/spc-linux-amd64,./dist/macos/spc-macos-arm64"
+
+      - uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push the Docker image
+        run: make docker-push
