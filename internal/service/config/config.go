@@ -107,19 +107,18 @@ type ExecCmd struct {
 }
 
 type L1GethCmd struct {
-	Flags map[string]string `arg:"positional"`
 }
 
 type SpGethCmd struct {
-	Flags map[string]string `arg:"positional"`
 }
 
 type SpMagiCmd struct {
-	Flags map[string]string `arg:"positional"`
+	Devnet     bool `arg:"--devnet"`
+	Checkpoint bool `arg:"--checkpoint"`
+	Sequencer  bool `arg:"--sequencer"`
 }
 
 type SidecarCmd struct {
-	Flags map[string]string `arg:"positional"`
 }
 
 type UpCmd struct {

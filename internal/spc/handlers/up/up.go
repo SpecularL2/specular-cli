@@ -50,9 +50,6 @@ func (u *UpHandler) Cmd() error {
 }
 
 func (u *UpHandler) StartSpGeth() error {
-	// TODO: implement overriding flags
-	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.SpGeth.Flags)
-
 	// TODO:
 	//	- all of the flag values should be changable
 	//	- inject values directly instead of loading via env?
@@ -91,9 +88,6 @@ func (u *UpHandler) StartSpGeth() error {
 }
 
 func (u *UpHandler) StartL1Geth() error {
-	// TODO: implement overriding flags
-	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.L1Geth.Flags)
-
 	period := 3
 	value, ok := os.LookupEnv("L1_PERIOD")
 	if ok {
@@ -202,20 +196,37 @@ func (u *UpHandler) fundL1Accounts() error { // nolint:unused
 }
 
 func (u *UpHandler) StartSpMagi() error {
-	// TODO: implement overriding flags
-	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.SpMagi.Flags)
+	devnetFlags := "--devnet "
 
-	// TODO: handle sync, devnet, sequencer settings here, not in sbin
-	spMagiCommand := ".$SPC_SP_MAGI_BIN" +
-		"--network $SPC_NETWORK " +
+	sequencerFlags := "--sequencer " +
+		"--sequencer-max-safe-lag $SPC_SEQUENCER_MAX_SAFE_LAG " +
+		"--sequencer-pk-file $WORKSPACE_DIR$SPC_SEQUENCER_PK_FILE "
+
+	checkpointFlags := "--checkpoint-sync-url $SPC_CHECKPOINT_SYNC_URL " +
+		"--checkpoint-hash $SPC_CHECKPOINT_HASH "
+
+	spMagiCommand := ".$SPC_SP_MAGI_BIN " +
+		"--network $WORKSPACE_DIR$SPC_NETWORK " +
 		"--l1-rpc-url $SPC_L1_RPC_URL " +
 		"--l2-rpc-url $SPC_L2_RPC_URL " +
 		"--sync-mode $SPC_SYNC_MODE " +
 		"--l2-engine-url $SPC_L2_ENGINE_URL " +
-		"--jwt-file $SPC_JWT_SECRET_PATH " +
-		"--rpc-port $SPC_RPC_PORT " +
-		"$SYNC_FLAGS $DEVNET_FLAGS $SEQUENCER_FLAGS $@"
+		"--jwt-file $WORKSPACE_DIR$SPC_JWT_SECRET_PATH " +
+		"--rpc-port $SPC_RPC_PORT "
 
+	if u.cfg.Args.Up.SpMagi.Devnet {
+		spMagiCommand += devnetFlags
+	}
+
+	if u.cfg.Args.Up.SpMagi.Sequencer {
+		spMagiCommand += sequencerFlags
+	}
+
+	if u.cfg.Args.Up.SpMagi.Checkpoint {
+		spMagiCommand += checkpointFlags
+	}
+
+	u.log.Info(spMagiCommand)
 	cmd, err := u.workspace.RunStringCommand(spMagiCommand)
 	if err != nil {
 		return err
@@ -227,9 +238,6 @@ func (u *UpHandler) StartSpMagi() error {
 }
 
 func (u *UpHandler) StartSidecar() error {
-	// TODO: implement overriding flags
-	u.log.Warn("NOT IMPLEMENT - overidden flags:", u.cfg.Args.Up.SpMagi.Flags)
-
 	// TODO: easily toggle disseminator & toggle
 	sidecarCommand := ".$SPC_SIDECAR_BIN" +
 		"--l1.endpoint $SPC_L1_ENDPOINT" +
