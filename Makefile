@@ -18,6 +18,7 @@ help:
 .PHONY: lint-test # Run lint-tests
 lint-test:
 	go mod tidy
+	@go install golang.org/x/tools/cmd/goimports@latest
 	goimports -local github.com/SpecularL2/specular-cli -w .
 	go fmt ./...
 	@golangci-lint -v run ./...
