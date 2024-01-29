@@ -1,10 +1,19 @@
 package up
 
 import (
+	"context"
+	"crypto/ecdsa"
 	"fmt"
+	"math/big"
 	"os"
+	"os/user"
 	"strconv"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 
 	"github.com/sirupsen/logrus"
 
@@ -18,11 +27,12 @@ type UpHandler struct {
 	workspace *workspace.WorkspaceHandler
 }
 
-// type CallArgs struct {
-// 	from  *common.Address
-// 	to    *common.Address
-// 	value *big.Int
-// }
+// nolint:unused
+type CallArgs struct {
+	from  *common.Address
+	to    *common.Address
+	value *big.Int
+}
 
 func (u *UpHandler) Cmd() error {
 	switch {
@@ -124,67 +134,66 @@ func (u *UpHandler) StartL1Geth() error {
 	return nil
 }
 
-// func (u *UpHandler) fundL1Accounts() error {
-// 	usr, err := user.Current()
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	client, err := ethclient.Dial("http://127.0.0.1:8545")
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	header, err := client.HeaderByNumber(context.Background(), big.NewInt(0))
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	// TODO: make pk files configurable
-// 	workspaceDir := "%s/.spc/workspaces/active_workspace/%s"
-// 	var possiblePKFiles = []string{
-// 		"sequencer_pk.txt",
-// 		"validator_pk.txt",
-// 		"deployer_pk.txt",
-// 	}
-//
-// 	for _, name := range possiblePKFiles {
-// 		filePath := fmt.Sprintf(workspaceDir, usr.HomeDir, name)
-// 		privateKey, err := crypto.LoadECDSA(filePath)
-// 		if err != nil {
-// 			u.log.Debugf("did not find: %s: %s", name, err)
-// 			continue
-// 		}
-//
-// 		privateKeyECDSA, ok := privateKey.Public().(*ecdsa.PublicKey)
-// 		if !ok {
-// 			u.log.Warnf("could not parse key from: %s: %s", name, err)
-//
-// 		}
-//
-// 		toAddress := crypto.PubkeyToAddress(*privateKeyECDSA)
-// 		u.log.Infof("got pk for: %s", toAddress.String())
-//
-// 		err = client.Client().Call(
-// 			"eth_sendTransaction",
-// 			header.Coinbase.Hex(),
-// 			toAddress.Hex(),
-// 			big.NewInt(10000),
-// 		)
-// 		if err != nil {
-// 			u.log.Warn(err)
-// 			return err
-// 		}
-//
-// 		u.log.Info("funded account")
-// 		time.Sleep(time.Second * 3)
-// 		balance, err := client.BalanceAt(context.Background(), toAddress, nil)
-// 		u.log.Info(balance)
-//
-// 	}
-//
-// 	return nil
-// }
+func (u *UpHandler) fundL1Accounts() error { // nolint:unused
+	usr, err := user.Current()
+	if err != nil {
+		return err
+	}
+
+	client, err := ethclient.Dial("http://127.0.0.1:8545")
+	if err != nil {
+		return err
+	}
+
+	header, err := client.HeaderByNumber(context.Background(), big.NewInt(0))
+	if err != nil {
+		return err
+	}
+
+	// TODO: make pk files configurable
+	workspaceDir := "%s/.spc/workspaces/active_workspace/%s"
+	var possiblePKFiles = []string{
+		"sequencer_pk.txt",
+		"validator_pk.txt",
+		"deployer_pk.txt",
+	}
+
+	for _, name := range possiblePKFiles {
+		filePath := fmt.Sprintf(workspaceDir, usr.HomeDir, name)
+		privateKey, err := crypto.LoadECDSA(filePath)
+		if err != nil {
+			u.log.Debugf("did not find: %s: %s", name, err)
+			continue
+		}
+
+		privateKeyECDSA, ok := privateKey.Public().(*ecdsa.PublicKey)
+		if !ok {
+			u.log.Warnf("could not parse key from: %s: %s", name, err)
+
+		}
+
+		toAddress := crypto.PubkeyToAddress(*privateKeyECDSA)
+		u.log.Infof("got pk for: %s", toAddress.String())
+
+		err = client.Client().Call(
+			"eth_sendTransaction",
+			header.Coinbase.Hex(),
+			toAddress.Hex(),
+			big.NewInt(10000),
+		)
+		if err != nil {
+			u.log.Warn(err)
+			return err
+		}
+
+		u.log.Info("funded account")
+		time.Sleep(time.Second * 3)
+		balance, _ := client.BalanceAt(context.Background(), toAddress, nil)
+		u.log.Info(balance)
+	}
+
+	return nil
+}
 
 func (u *UpHandler) StartSpMagi() error {
 	devnetFlags := "--devnet "
@@ -207,7 +216,6 @@ func (u *UpHandler) StartSpMagi() error {
 
 	if u.cfg.Args.Up.SpMagi.Devnet {
 		spMagiCommand += devnetFlags
-
 	}
 
 	if u.cfg.Args.Up.SpMagi.Sequencer {

@@ -34,12 +34,21 @@ build-linux:
 .PHONY: build-macos # Build macOS binary
 build-macos:
 	mkdir -p $(DIST_MACOS)
-	CGO_ENABLED=1 GOOS=darwin GOARCH=arm64 $(GO_BUILD) -o ./$(DIST_MACOS)/$(BINARY_NAME)-macos-arm64 -v $(CMD_PATH)
+	CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 $(GO_BUILD) -o ./$(DIST_MACOS)/$(BINARY_NAME)-macos-arm64 -v $(CMD_PATH)
+
+.PHONY: build-docker # Build Docker image
+build-docker:
+	docker build . -t ghcr.io/specularl2/specular-cli:latest -t spc
+
+.PHONY: docker-push # Push Docker image to registry
+docker-push:
+	docker push ghcr.io/specularl2/specular-cli:latest
 
 .PHONY: build # Build Linux binary (alias)
 build:
 	make build-linux
 	make build-macos
+	make build-docker
 
 .PHONY: wire-generate # Generate Wire bindings
 wire-generate:
