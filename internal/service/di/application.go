@@ -6,6 +6,7 @@ import (
 	"os/signal"
 
 	"github.com/SpecularL2/specular-cli/internal/spc/handlers/exec"
+	"github.com/SpecularL2/specular-cli/internal/spc/handlers/test"
 	"github.com/SpecularL2/specular-cli/internal/spc/handlers/up"
 	"github.com/SpecularL2/specular-cli/internal/spc/handlers/workspace"
 
@@ -30,6 +31,7 @@ type Application struct {
 	workspace *workspace.WorkspaceHandler
 	executor  *exec.RunHandler
 	up        *up.UpHandler
+	test      *test.TestHandler
 }
 
 func (app *Application) Run() error {
@@ -49,8 +51,9 @@ func (app *Application) Run() error {
 		return app.workspace.Cmd()
 	case app.config.Args.Up != nil:
 		return app.up.Cmd()
+	case app.config.Args.Test != nil:
+		return app.test.Cmd()
 	}
-
 	err := errGroup.Wait()
 	return err
 }
