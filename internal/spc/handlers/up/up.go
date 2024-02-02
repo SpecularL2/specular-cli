@@ -54,8 +54,22 @@ func (u *UpHandler) StartSpGeth() error {
 	//	- all of the flag values should be changable
 	//	- inject values directly instead of loading via env?
 	//	- workspace path should be parsed when reading in the .env file
+
+	initCommand := ".$SPC_SP_GETH_BIN " +
+		"--datadir $SPC_DATA_DIR " +
+		"--networkid $SPC_NETWORK_ID " +
+		"init $SPC_GENESIS_PATH"
+
+	cmd, err := u.workspace.RunStringCommand(initCommand)
+	if err != nil {
+		return err
+	}
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+
 	spGethCommand := ".$SPC_SP_GETH_BIN " +
-		"--datadir $WORKSPACE_DIR$SPC_DATA_DIR " +
+		"--datadir $SPC_DATA_DIR " +
 		"--networkid $SPC_NETWORK_ID " +
 		"--http " +
 		"--http.addr $SPC_ADDRESS " +
@@ -71,13 +85,13 @@ func (u *UpHandler) StartSpGeth() error {
 		"--authrpc.vhosts=* " +
 		"--authrpc.addr $SPC_ADDRESS " +
 		"--authrpc.port $SPC_AUTH_PORT " +
-		"--authrpc.jwtsecret $WORKSPACE_DIR$SPC_JWT_SECRET_PATH " +
+		"--authrpc.jwtsecret $SPC_JWT_SECRET_PATH " +
 		"--miner.recommit 0 " +
 		"--nodiscover " +
 		"--maxpeers 0 " +
 		"--syncmode full"
 
-	cmd, err := u.workspace.RunStringCommand(spGethCommand)
+	cmd, err = u.workspace.RunStringCommand(spGethCommand)
 	if err != nil {
 		return err
 	}
@@ -200,18 +214,18 @@ func (u *UpHandler) StartSpMagi() error {
 
 	sequencerFlags := "--sequencer " +
 		"--sequencer-max-safe-lag $SPC_SEQUENCER_MAX_SAFE_LAG " +
-		"--sequencer-pk-file $WORKSPACE_DIR$SPC_SEQUENCER_PK_FILE "
+		"--sequencer-pk-file $SPC_SEQUENCER_PK_FILE "
 
 	checkpointFlags := "--checkpoint-sync-url $SPC_CHECKPOINT_SYNC_URL " +
 		"--checkpoint-hash $SPC_CHECKPOINT_HASH "
 
 	spMagiCommand := ".$SPC_SP_MAGI_BIN " +
-		"--network $WORKSPACE_DIR$SPC_NETWORK " +
+		"--network $SPC_NETWORK " +
 		"--l1-rpc-url $SPC_L1_RPC_URL " +
 		"--l2-rpc-url $SPC_L2_RPC_URL " +
 		"--sync-mode $SPC_SYNC_MODE " +
 		"--l2-engine-url $SPC_L2_ENGINE_URL " +
-		"--jwt-file $WORKSPACE_DIR$SPC_JWT_SECRET_PATH " +
+		"--jwt-file $SPC_JWT_SECRET_PATH " +
 		"--rpc-port $SPC_RPC_PORT "
 
 	if u.cfg.Args.Up.SpMagi.Devnet {
@@ -249,13 +263,13 @@ func (u *UpHandler) StartSidecar() error {
 	sidecarCommand := ".$SPC_SIDECAR_BIN " +
 		"--l1.endpoint $SPC_L1_ENDPOINT " +
 		"--l2.endpoint $SPC_L2_ENDPOINT " +
-		"--protocol.rollup-cfg-path $WORKSPACE_DIR/$SPC_ROLLUP_CFG_PATH "
+		"--protocol.rollup-cfg-path $SPC_ROLLUP_CFG_PATH "
 
 	if u.cfg.Args.Up.Sidecar.Disseminator {
 		if err := u.workspace.LoadWorkspaceEnvVars(); err != nil {
 			return err
 		}
-		pkBytes, err := os.ReadFile(os.ExpandEnv("$WORKSPACE_DIR/$SPC_SEQUENCER_PK_PATH"))
+		pkBytes, err := os.ReadFile(os.ExpandEnv("$SPC_SEQUENCER_PK_PATH"))
 		if err != nil {
 			return nil
 		}
@@ -268,7 +282,7 @@ func (u *UpHandler) StartSidecar() error {
 			return err
 		}
 
-		pkBytes, err := os.ReadFile(os.ExpandEnv("$WORKSPACE_DIR/$SPC_VALIDATOR_PK_PATH"))
+		pkBytes, err := os.ReadFile(os.ExpandEnv("$SPC_VALIDATOR_PK_PATH"))
 		if err != nil {
 			return nil
 		}

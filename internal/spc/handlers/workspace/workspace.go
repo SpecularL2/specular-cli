@@ -219,13 +219,12 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 		}
 	}
 
-	// TODO: should this be set in .paths.env instead?
-	os.Setenv("WORKSPACE_DIR", fmt.Sprintf("%s/.spc/workspaces/active_workspace", usr.HomeDir))
-
 	envPrefixVars := map[string]string{}
 	for k, v := range envVars {
 		key := fmt.Sprintf("SPC_%s", strings.ToUpper(k))
 		value := os.ExpandEnv(v)
+		value = strings.ReplaceAll(value, "~", usr.HomeDir)
+		w.log.Warnf("%s -> %s", v, value)
 		envPrefixVars[key] = value
 		err := os.Setenv(key, value)
 		if err != nil {
