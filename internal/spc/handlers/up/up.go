@@ -269,7 +269,7 @@ func (u *UpHandler) StartSidecar() error {
 		if err := u.workspace.LoadWorkspaceEnvVars(); err != nil {
 			return err
 		}
-		pkBytes, err := os.ReadFile(os.ExpandEnv("$SPC_SEQUENCER_PK_PATH"))
+		pkBytes, err := os.ReadFile(os.ExpandEnv("$SPC_DISSEMINATOR_PK_PATH"))
 		if err != nil {
 			return nil
 		}

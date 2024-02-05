@@ -224,7 +224,6 @@ func (w *WorkspaceHandler) LoadWorkspaceEnvVars() error {
 		key := fmt.Sprintf("SPC_%s", strings.ToUpper(k))
 		value := os.ExpandEnv(v)
 		value = strings.ReplaceAll(value, "~", usr.HomeDir)
-		w.log.Warnf("%s -> %s", v, value)
 		envPrefixVars[key] = value
 		err := os.Setenv(key, value)
 		if err != nil {
