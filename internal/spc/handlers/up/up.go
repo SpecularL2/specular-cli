@@ -226,7 +226,8 @@ func (u *UpHandler) StartSpMagi() error {
 		"--sync-mode $SPC_SYNC_MODE " +
 		"--l2-engine-url $SPC_L2_ENGINE_URL " +
 		"--jwt-file $SPC_JWT_SECRET_PATH " +
-		"--rpc-port $SPC_RPC_PORT "
+		"--rpc-port $SPC_RPC_PORT " +
+		"--watcher-delay $SPC_WATCHER_DELAY "
 
 	if u.cfg.Args.Up.SpMagi.Devnet {
 		spMagiCommand += devnetFlags
