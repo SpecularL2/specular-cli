@@ -58,7 +58,7 @@ func (t *TestHandler) RunFuzzer(numTx int) error {
 	}
 
 	// TODO: manage accounts through spc
-	privateKeyBuf, err := os.ReadFile(os.ExpandEnv("$WORKSPACE_DIR/deployer_pk.txt"))
+	privateKeyBuf, err := os.ReadFile(os.ExpandEnv("$SPC_DEPLOYER_PK_PATH"))
 	if err != nil {
 		return fmt.Errorf("could not read private key: %s", err)
 	}
@@ -105,7 +105,10 @@ func (t *TestHandler) RunFuzzer(numTx int) error {
 
 		err = client.SendTransaction(context.Background(), signedTx)
 		if err != nil {
-			return fmt.Errorf("could not send tx: %s", err)
+			// valid transactions might still fail to get executed
+			// for example if they are underpriced
+			// the test will still fail if the sequencer crashes (since we won't get a nonce)
+			t.log.Warnf("could not send tx: %s", err)
 		}
 	}
 
